@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>AdminLTE 2 | Top Navigation</title>
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<!-- Bootstrap 3.3.6 -->
+<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+<!-- Font Awesome -->
+  <link rel="stylesheet" href="font-awesome-4.4.0/css/font-awesome.min.css" >
+  <link rel="stylesheet" href="ionicons-2.0.1/css/ionicons.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="../dist/css/AdminLTE.min.css">
+<!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+<link rel="stylesheet" href="../dist/css/skins/skin-black-light.min.css">
+<link rel="stylesheet" href="../plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css">
+<link rel="stylesheet" href="css/common.css">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+  <script src="js/html5shiv.js"></script>
+  <script src="js/respond.min.js"></script>
+  <![endif]-->
+  <script src="js/forag_util.js"></script>
+</head>
+<script>
+    var cParent_id = -1;//默认为-1，即评论的是文章，而不是回复的评论，否则为评论的ID
+    var cRoot_id = -1;//默认为-1，即评论的是文章，而不是回复的评论，否则为根评论的ID
+    var login_flag = -1;//默认为-1，即未登录，否则为用户ID
+    var msg_id = -1;//默认我-1，即直接通过URL访问，应直接重定向主页（index.html），否则为文章ID
+    var maxComment = 5;//限制评论的数量，超过即分页显示
+    var beginSubscript = 0;//指定开始下标
+    var nowPageNumber = 1;//当前页标
+    var pageAllCount = 5;//分页总数
+    var pageCount = 3;//分页显示数量
+    var beginPageSubscript = 1;//当前分页显示的开始页码
+    var commentRootDataArray;//全局评论数据，用于分页
+    var commentNodeDataArray;//子级评论数据
+    var commentNodeCount;//子级评论总数
+    var commentRootCount;//根评论总数
+    var xmlHttp;
+    function LoadingMsgDetail() {
+        if (location.search == ""){
+            location.href = "index.html";//禁止用户使用URL直接访问
+        }
+        var mid = request("mId");
+        xmlHttp = createXMLHttp();
+        var url = "/LoadArticle";
+        xmlHttp.open("POST",url,true);
+        xmlHttp.onreadystatechange=loadMsgCallback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("mId="+mid);
+    }
+    function loadMsgCallback() {
+        //4代表完成
+        if (xmlHttp.readyState == 4) {
+            //200代表服务器响应成功，404代表资源未找到，500服务器内部错误
+            if (xmlHttp.status == 200) {
+                //交互成功获得响应的数据，是文本格式,并解析
+                var xmlResult = xmlHttp.responseText;
+                var jsonData = eval("("+xmlResult+")");
+                var msg = jsonData.MSG;
+                var state = jsonData.state;
+                var userInfo = jsonData.userInfo;
+                commentNodeCount = jsonData.nodeCommentCount;
+                commentRootDataArray = jsonData.commentRootData;
+                commentNodeDataArray = jsonData.commentNodeData;
+                commentRootCount = jsonData.rootCommentCount;
+                msg_id = msg.mId;
+                var topLinkUl = document.getElementById("top-login-register-link");
+                var topUserInforUl = document.getElementById("top-user-information");
+                if (state == "isLogin") {
+                    topLinkUl.style.display = "none";
+                    topUserInforUl.style.display = "inline";
+                    login_flag = userInfo.uId;
+                    document.getElementById("profile-user-name").innerHTML = userInfo.uName;
+                    document.getElementById("profile-user-name-hidden").innerHTML = userInfo.uName;
+                }
+                else if (state == "notLogin") {
+                    topLinkUl.display = "inline";
+                    topUserInforUl.display = "none";
+                }
+                document.getElementById("over-lay").style.display = "none";
+                document.getElementById("art-msg-head").innerHTML=msg.mTitle;
+                document.getElementById("art-msg-context").innerHTML = msg.mContext;
+                document.getElementById("like-count").innerHTML = msg.mLike_count;
+                document.getElementById("comment-count").innerHTML = commentRootCount;
+                setCommentFunc();
+            }
+        }
+    }
+    //相应后台检查登录
+    function checkLogin() {
+        //向服务器发送内容，用到XmlHttp对象
+        xmlHttp = createXMLHttp();
+        //给服务器发送数据，escape()不加中文会有问题
+        var url = "/ShowInforEdit";
+        //true表示js的脚本会在send()方法之后继续执行而不会等待来自服务器的响应
+        xmlHttp.open("POST",url,true);
+        //xmlHttp绑定回调方法，这个方法会在xmlHttp状态改变的时候调用,xmlHttp状态有0-4，
+        //我们只关心4，4表示完成
+        xmlHttp.onreadystatechange=callback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("type=checkLogin");
+    }
+    function callback() {
+        //4代表完成
+        if (xmlHttp.readyState == 4) {
+            //200代表服务器响应成功，404代表资源未找到，500服务器内部错误
+            if (xmlHttp.status == 200) {
+                //交互成功获得响应的数据，是文本格式,并解析
+                var xmlResult = xmlHttp.responseText;
+                var temp = eval('(' + xmlResult + ')');//把Json字符串转化为Json对象
+                var topLinkUl = document.getElementById("top-login-register-link");
+                var topUserInforUl = document.getElementById("top-user-information");
+                if (temp.state == "isLogin") {
+                    topLinkUl.style.display = "none";
+                    topUserInforUl.style.display = "inline";
+                }
+                else if (temp.state == "notLogin") {
+                    topLinkUl.display = "inline";
+                    topUserInforUl.display = "none";
+                }
+            }
+        }
+    }
+    function resetTextArea() {
+        var textArea = document.getElementById("comment-textarea");
+        alert(textArea.value);
+        textArea.value("");
+        alert(textArea.value+"12313");
+    }
+    function submitComment(textValue) {
+        if (login_flag == -1){
+            alert("请先登录再来评论");
+            location.href = "login.jsp";
+            return;//虽然上一句已经跳转URL，但是也要加上这句防止后面的代码执行
+        }
+        if (textValue == ""){
+            textValue = document.getElementById("comment-textarea").value
+        }
+        xmlHttp = createXMLHttp();
+        var url = "/SubmitComment";
+        xmlHttp.open("POST",url,true);
+        xmlHttp.onreadystatechange=submitCommentCallback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("cParent_id="+cParent_id+"&context="+textValue+"&mId="+msg_id+"&cRoot_Id="+cRoot_id);
+    }
+    function submitCommentCallback() {
+        //4代表完成
+        if (xmlHttp.readyState == 4) {
+            //200代表服务器响应成功，404代表资源未找到，500服务器内部错误
+            if (xmlHttp.status == 200) {
+                //交互成功获得响应的数据，是文本格式,并解析
+                var xmlResult = xmlHttp.responseText;
+                var jsonData = eval("("+xmlResult+")");
+                var state = jsonData.state;
+                commentNodeCount = jsonData.nodeCommentCount;
+                commentRootDataArray = jsonData.commentRootData;
+                commentNodeDataArray = jsonData.commentNodeData;
+                commentRootCount = jsonData.rootCommentCount;
+                if (state == "errorComment"){
+                    alert("评论发生错误！")
+                }
+                else if(state == "successComment"){
+                    setCommentFunc();
+                }
+            }
+        }
+    }
+    function setCommentFunc() {
+        var boxComments = document.getElementById("box-comments");
+        if (commentRootCount <= 0){
+            boxComments.innerHTML = "<span class='comment-text' style='text-align: center'>还没有评论！</span>";
+        }
+        else{
+            setNowPageCommentFunc()
+        }
+    }
+    function setNowPageCommentFunc() {
+        var boxComments = document.getElementById("box-comments");
+        boxComments.innerHTML = "";
+        var tempHTML = "";
+        var rootCount = 0;
+        var i;
+        for (i = beginSubscript+(nowPageNumber-1)*maxComment; i < parseInt(commentRootCount); i++){
+            if (rootCount >= maxComment){
+                break;
+            }
+            if (commentRootDataArray[i].cParent_Id == -1) {
+                rootCount++;
+                var tempId = commentRootDataArray[i].cId+","+commentRootDataArray[i].cParent_Id+","+commentRootDataArray[i].cRoot_Id;
+                var innerCommentFlag = -1;
+                for (var j = 0; j < parseInt(commentNodeCount); j++){//寻找这个评论下面还有没有评论
+                    if (commentNodeDataArray[j].cRoot_Id == commentRootDataArray[i].cId){
+                        innerCommentFlag = j;
+                        break;
+                    }
+                }
+                tempHTML += "<div class='box-comment'>"
+                    + "<img class='img-circle img-sm' src='../dist/img/user3-128x128.jpg' alt='User Image'>"
+                    + "<div class='comment-text'> <span class='username'>"
+                    + commentRootDataArray[i].userName + "<span class='text-muted pull-right'>"
+                    + commentRootDataArray[i].cTime + "</span> </span>"
+                    + commentRootDataArray[i].cCommentText + "<span class='text-muted pull-right'><a href='#' onclick='openCommentInput(this)'>回复</a></span></div>"
+                    + "<div class='input-group' style='width: 95%;margin-left: 40px;display: none'>"
+                    + "<input name='message' placeholder='Type Message ...' class='form-control' type='text'>"
+                    + "<input name='hidden' type='hidden' value='"+tempId+"'>"
+                    + "<span class='input-group-btn'>"
+                    + "<button type='submit' class='btn btn-primary btn-flat' onclick='closeCommentInput()'>Send</button>"
+                    + "</span></div>";
+                if (innerCommentFlag != -1){
+                    tempHTML +="<div class='col-md-4' style='width: 100%'>"
+                        +"<div class='box box-solid box-default'>"
+                    for (var j = innerCommentFlag; j < parseInt(commentNodeCount); j++){
+                        if (commentNodeDataArray[j].cRoot_Id == commentRootDataArray[i].cId){
+                            tempId = commentNodeDataArray[j].cId+","+commentNodeDataArray[j].cParent_Id+","+commentNodeDataArray[j].cRoot_Id;
+                            tempHTML += "<div class='box-footer'>"
+                                + "<img class='img-circle img-sm' src='../dist/img/user3-128x128.jpg' alt='User Image'>"
+                                + "<div class='comment-text'> <span class='username'>"
+                                + commentNodeDataArray[j].userName +"<span class='attachment-text'><a href='#'>@"+commentNodeDataArray[j].comment_username+"</a></span>"+ "<span class='text-muted pull-right'>"
+                                + commentNodeDataArray[j].cTime + "</span> </span>"
+                                + commentNodeDataArray[j].cCommentText + "<span class='text-muted pull-right'><a href='#' onclick='openCommentInput(this)'>回复</a></span></div>"
+                                + "<div class='input-group' style='width: 95%;margin-left: 40px;display: none'>"
+                                + "<input name='message' placeholder='Type Message ...' class='form-control' type='text'>"
+                                +"<input name='hidden' type='hidden' value='"+tempId+"'>"
+                                + "<span class='input-group-btn'>"
+                                + "<button type='submit' class='btn btn-primary btn-flat' onclick='closeCommentInput()'>Send</button>"
+                                + "</span></div></div>";
+                        }
+                    }
+                    tempHTML += "</div></div>"
+                }
+                tempHTML += "</div>";
+            }
+        }
+        if ((rootCount >= maxComment && rootCount < commentRootCount) || nowPageNumber > 1){
+            pageCount = Math.ceil(commentRootCount/maxComment);
+            tempHTML += "<div class='box-footer text-center'>"
+            +"<ul class='pagination pagination-sm no-margin'>"
+            +"<li><a href='#' onclick='setNowPageParameters(this)'>«</a></li>";
+            for (var i = 0; i < pageCount;){
+                var tempClassName = "";
+                if (i == 0){
+                    tempClassName = "";
+                }
+                tempHTML += "<li class='"+tempClassName+"'><a href='#' onclick='setNowPageParameters(this)'>"+(++i)+"</a></li>";
+            }
+            tempHTML +="<li><a href='#' onclick='setNowPageParameters(this)'>»</a></li>"
+            +"</ul>"
+            +"</div>";
+        }
+        boxComments.innerHTML = tempHTML;
+    }
+    function setNowPageParameters(obj) {
+        var rootUlNode = obj.parentNode.parentNode.getElementsByTagName("li");
+        rootUlNode[nowPageNumber-beginPageSubscript+1].className = "";
+        if (obj.innerHTML == "«"){
+            if (nowPageNumber > 1){
+                nowPageNumber--;
+            }else{
+                nowPageNumber = 1;
+                alert("已经是第一页了！");
+            }
+        }
+        else if (obj.innerHTML == "»"){
+            if (nowPageNumber < pageCount){
+                nowPageNumber++;
+            }
+            else{
+                nowPageNumber = pageCount;
+                alert("已经是最后一页了！");
+            }
+        }else{
+            nowPageNumber = parseInt(obj.innerHTML);
+        }
+        rootUlNode[nowPageNumber-beginPageSubscript+1].className = "disabled";
+        setNowPageCommentFunc();
+    }
+    var gLinkComment = "null";
+    var gInputComment = "null";
+    function openCommentInput(obj) {
+        if (gLinkComment != "null" || gInputComment != "null"){
+            gLinkComment.style.display = "inline";
+            gInputComment.style.display = "none";
+        }
+        var LinkComment = obj.parentNode;
+        LinkComment.style.display = "none";
+        gLinkComment = LinkComment;
+        var InputComment = gLinkComment.parentNode.parentNode.getElementsByTagName("div")[1];
+        InputComment.style.display = "table";
+        gInputComment = InputComment;
+        //document.getElementById('textarea').scrollIntoView();
+    }
+    function closeCommentInput() {
+        gLinkComment.style.display = "inline";
+        gInputComment.style.display = "none";
+        var comText = gInputComment.getElementsByTagName("input")[0];
+        var comHidden = gInputComment.getElementsByTagName("input")[1];
+        if (comText.value == ""){
+            alert("评论不能为空！");
+            return;
+        }
+        submitCommentFunc(comText.value,comHidden.value);
+    }
+    function submitCommentFunc(textValue,hiddenValue) {
+        var arrayIds = hiddenValue.split(",");
+        var cId = arrayIds[0];
+        var cRootId = arrayIds[2];
+        cParent_id = cId;
+        if (cRootId == 0 || cRootId == -1){
+            cRootId = cId;
+        }
+        cRoot_id = cRootId;
+        submitComment(textValue);
+    }
+    function clickFaOUp(obj) {
+        if (obj.style.backgroundColor == "rgb(0, 166, 90)"){
+            return;
+        }
+        obj.style.backgroundColor = "#00a65a";
+        obj.childNodes[0].style.fontColor = "#FFFFFF";
+        xmlHttp = createXMLHttp();
+        var url = "/MsgEdit";
+        xmlHttp.open("POST",url,true);
+        xmlHttp.onreadystatechange=clickFaOUpCallback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("type=like&mId="+msg_id);
+    }
+    function clickFaOUpCallback() {
+        //4代表完成
+        if (xmlHttp.readyState == 4) {
+            //200代表服务器响应成功，404代表资源未找到，500服务器内部错误
+            if (xmlHttp.status == 200) {
+                //交互成功获得响应的数据，是文本格式,并解析
+                var xmlResult = xmlHttp.responseText;
+                if (xmlResult == "successUpdateLikeCount"){
+                    alert("点赞成功！");
+                    var likeCount = document.getElementById("like-count").innerHTML;
+                    document.getElementById("like-count").innerHTML = parseInt(likeCount)+1;
+                }
+                else if (xmlResult == "errorUpdateLikeCount"){
+                    alert("点赞失败！");
+                }
+            }
+        }
+    }
+</script>
+<!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+<body class="hold-transition skin-black-light layout-top-nav" onload="LoadingMsgDetail()">
+<div class="wrapper">
+  <header class="main-header">
+    <nav class="navbar navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header col-md-4"> <a href="index.html" class="navbar-brand" style="border:none;">Forag<b>ER</b></a>
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+            <i class="fa fa-bars"></i>
+          </button>
+        </div>
+        
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="navbar-collapse pull-left collapse col-md-3" id="navbar-collapse" aria-expanded="false" style="height: 1px;">
+         <form class="navbar-form navbar-right" role="search">
+                	<div class="input-group">
+                        <input class="form-control" type="text" placeholder="Search">
+                            <span class="input-group-btn">
+                              <button type="button" class="btn btn-info btn-flat">Go!</button>
+                            </span>
+                      </div>
+         </form>
+        </div>
+        <!-- /.navbar-collapse --> 
+        <!-- Navbar Right Menu -->
+        <div class="navbar-custom-menu col-md-5">
+          <ul class="nav navbar-nav" id="top-login-register-link" style="float:right;">
+            <!-- Messages: style can be found in dropdown.less-->
+
+            <!-- Notifications Menu -->
+            <li class="dropdown messages-menu">
+              <a href="login.jsp" class="text-center" style="color: #3c8dbc">请登录</a>
+            </li>
+            <!-- Tasks Menu -->
+            <li class="dropdown messages-menu">
+              <a href="register.jsp" class="text-center" style="color: #3c8dbc">注册账号</a>
+            </li>
+            <li class="dropdown messages-menu">
+              <a><br/></a>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav" id="top-user-information" style="float:right;display: none">
+            <!-- Messages: style can be found in dropdown.less-->
+            
+            <!-- Notifications Menu -->
+            <li class="dropdown messages-menu"> 
+              <!-- Menu toggle button --> 
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-bell-o"></i> <span class="label label-warning">10</span> </a>
+              <ul class="dropdown-menu">
+                <li class="header">You have 10 requests</li>
+                <li> 
+                  <!-- Inner Menu: contains the notifications -->
+                  <ul class="menu">
+                    <li>
+                    	<ul class="menu">
+                    <li><!-- start message --> 
+                      <a href="#">
+                      <div class="pull-left"> 
+                        <!-- User Image --> 
+                        <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> </div>
+                      <!-- Message title and timestamp -->
+                      <h4> Alexander Pierce <small><i class="fa fa-clock-o"></i> 5 mins</small> </h4>
+                      <!-- The message -->
+                      <p>Why not buy a new awesome theme?</p>
+                      </a> </li>
+                    <!-- end message -->
+                  </ul>
+                    </li>
+                    <!-- end notification -->
+                  </ul>
+                </li>
+                <li class="footer"><a href="userProfile.html">See all</a></li>
+              </ul>
+            </li>
+            <!-- Tasks Menu -->
+            <li class="dropdown messages-menu"> 
+              <!-- Menu Toggle Button --> 
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="glyphicon glyphicon-time"></i> <span class="label label-danger">9</span> </a>
+              <ul class="dropdown-menu">
+                <li class="header">You have 4 history</li>
+                <li> 
+                  <!-- inner menu: contains the messages -->
+                  <ul class="menu">
+                    <li><!-- start message --> 
+                      <a href="#">
+                      <div class="pull-left"> 
+                        <!-- User Image --> 
+                        <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> </div>
+                      <!-- Message title and timestamp -->
+                      <h4> Alexander Pierce <small><i class="fa fa-clock-o"></i> 5 mins</small> </h4>
+                      <!-- The message -->
+                      <p>Why not buy a new awesome theme?</p>
+                      </a> </li>
+                    <!-- end message -->
+                  </ul>
+                  <!-- /.menu --> 
+                </li>
+                <li class="footer"><a href="userProfile.html">See All</a></li>
+              </ul>
+            </li>
+            <!-- User Account Menu -->
+            <li class="dropdown user user-menu"> 
+              <!-- Menu Toggle Button --> 
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"> 
+              <!-- The user image in the navbar--> 
+              <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image"> 
+              <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                <span class="hidden-xs" id="profile-user-name">UserName</span> </a>
+              <ul class="dropdown-menu">
+                <!-- The user image in the menu -->
+                <li class="user-header"> <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+                  <p> <span id="profile-user-name-hidden">UserName</span>-<span id="profile-user-profession">Web Developer</span> <small>Member since Nov. 2012</small> </p>
+                </li>
+                <!-- Menu Body -->
+                <li class="user-body">
+                  <div class="row">
+                    <div class="col-xs-4 text-center">
+                    	<div class="description-block">
+                            <h5 class="description-header">3,200</h5>
+                            <span class="description-text"><a href="#">Fllowers</a></span>
+                         </div>
+                    </div>
+                    <div class="col-xs-4 text-center">
+                    	<div class="description-block">
+                            <h5 class="description-header">3,200</h5>
+                            <span class="description-text"><a href="#">Interest</a></span>
+                         </div>
+                    </div>
+                    <div class="col-xs-4 text-center">
+                    	<div class="description-block">
+                            <h5 class="description-header">3,200</h5>
+                            <span class="description-text"><a href="#">Friends</a></span>
+                         </div>
+                    </div>
+                    
+                  </div>
+                  <!-- /.row --> 
+                </li>
+                <!-- Menu Footer-->
+                <li class="user-footer">
+                  <div class="pull-left"> <a href="userProfile.html" class="btn btn-default btn-flat">Profile</a> </div>
+                  <div class="pull-right"> <a href="#" class="btn btn-default btn-flat">Sign out</a> </div>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <!-- /.navbar-custom-menu --> 
+      </div>
+      <!-- /.container-fluid --> 
+    </nav>
+  </header>
+  <div class="container-fluid" style="background-color:#FCC;">
+    <div class="row" style="margin-top:10px;">
+      <div class="col-md-9" id="article_detail">
+        <div class="box box-widget">
+          <div class="box-header with-border">
+            <div class="">
+
+            </div>
+            <div class="user-block">
+              <img class="img-circle" src="../dist/img/user1-128x128.jpg" alt="User Image">
+              <span class="username"><a href="#">Jonathan Burke Jr.</a></span>
+              <span class="description">Shared publicly - 7:30 PM Today</span>
+            </div>
+            <!-- /.user-block --> 
+          </div>
+          <!-- /.box-header -->
+          <div class="box-body"> <!--<img class="img-responsive pad" src="../dist/img/photo2.png" alt="Photo">-->
+            <h2 style="text-align: center" id="art-msg-head">I took this photo this morning. What do you guys think</h2><br/><br/>
+            <p id="art-msg-context">I took this photo this morning. What do you guys think?</p>
+            <div class="overlay" id="over-lay"><i class="fa fa-refresh fa-spin"></i></div>
+            <button type="button" class="btn btn-default btn-xs"><i class="fa fa-share"></i> Share</button>
+            <button type="button" class="btn btn-default btn-xs" id="btn-fa-thumbs-o-up" onclick="clickFaOUp(this)"><i class="fa fa-thumbs-o-up"></i> Like</button>
+            <span class="pull-right text-muted"><span id="like-count">127</span> likes - <span id="comment-count">3</span> comments</span> </div>
+          <!-- /.box-body -->
+          <div class="box-footer box-comments" id="box-comments">
+            <div class="box-comment">
+              <!-- User image --> 
+              <img class="img-circle img-sm" src="../dist/img/user3-128x128.jpg" alt="User Image">
+              <div class="comment-text">
+                <span class="username"> Maria Gonzales
+                <span class="text-muted pull-right">8:03 PM Today</span>
+                </span><!-- /.username -->
+                It is a long established fact that a reader will be distracted
+                by the readable content of a page when looking at its layout.
+                <span class='text-muted pull-right'><a href='#'>回复</a></span>
+              </div>
+              <!-- /.comment-text -->
+              <div class="col-md-4" style="width: 100%">
+                <div class="box box-solid box-default">
+                  <div class="box-footer">
+                    <img class="img-circle img-sm" src="../dist/img/user3-128x128.jpg" alt="User Image">
+                    <div class="comment-text">
+                      <span class="username"> Maria Gonzales @TestName<span class="text-muted pull-right">8:03 PM Today</span> </span><!-- /.username -->
+                      It is a long established fact that a reader will be distracted
+                      by the readable content of a page when looking at its layout.
+                      <span class='text-muted pull-right'><a href='#'>回复</a></span>
+                    </div>
+                    <!-- /.comment-text -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- /.box-comment -->
+            <div class="box-comment"> 
+              <!-- User image --> 
+              <img class="img-circle img-sm" src="../dist/img/user4-128x128.jpg" alt="User Image">
+              <div class="comment-text"> <span class="username"> Luna Stark <span class="text-muted pull-right">8:03 PM Today</span> </span><!-- /.username --> 
+                It is a long established fact that a reader will be distracted
+                by the readable content of a page when looking at its layout.
+                <span class='text-muted pull-right'><a href='#'>回复</a></span>
+              </div>
+              <!-- /.comment-text --> 
+            </div>
+            <!-- /.box-comment --> 
+          </div>
+        </div>
+         <div class="box">
+            <div class="box-body pad">
+              <form>
+                <textarea class="textarea" placeholder="Place some text here" id="comment-textarea" style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;margin-bottom: 10px"></textarea>
+                <button type="button" id="submit-comment" class="btn btn-primary pull-right" onclick="submitComment('')">发表评论</button>
+                <button type="button" id="cancel-comment" class="btn btn-default pull-right margin-r-5" onclick="resetTextArea()">重置</button>
+              </form>
+            </div>
+          </div>
+      </div>
+      <div class="col-md-3" id="article_similar">
+        <div class="box box-primary">
+          <div class="box-body box-profile"> <img class="profile-user-img img-responsive img-circle" src="../dist/img/user4-128x128.jpg" alt="User profile picture">
+            <h3 class="profile-username text-center">Nina Mcintire</h3>
+            <p class="text-muted text-center">Software Engineer</p>
+            <ul class="list-group list-group-unbordered">
+              <li class="list-group-item"> <b>Followers</b> <a class="pull-right">1,322</a> </li>
+              <li class="list-group-item"> <b>Following</b> <a class="pull-right">543</a> </li>
+              <li class="list-group-item"> <b>Friends</b> <a class="pull-right">13,287</a> </li>
+            </ul>
+            <a href="#" class="btn btn-primary btn-block"><b>Follow</b></a> </div>
+          <!-- /.box-body --> 
+        </div>
+        <div class="box box-warning">
+          <div class="box-header with-border">
+            <h3 class="box-title">About Him</h3>
+          </div>
+          <!-- /.box-header -->
+          <div class="box-body"> <strong><i class="fa fa-pencil margin-r-5"></i> Skills</strong>
+            <p>
+              <span class="label label-danger">UI Design</span>
+              <span class="label label-success">Coding</span>
+              <span class="label label-info">Javascript</span>
+              <span class="label label-warning">PHP</span>
+              <span class="label label-primary">Node.js</span>
+            </p>
+            <hr>
+            <strong><i class="fa fa-file-text-o margin-r-5"></i> Notes</strong>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
+          </div>
+          <!-- /.box-body --> 
+        </div>
+        <div class="box box-danger">
+          <div class="box-header with-border">
+            <h3 class="box-title" style="font-size:14px;">相关文章</h3>
+            <div class="box-tools">
+              <div class="input-group input-group-sm" style="width: 150px;">
+                <input name="table_search" class="form-control pull-right" placeholder="Search" type="text">
+                <div class="input-group-btn">
+                  <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /.box-header -->
+          <div class="box-body table-responsive no-padding">
+            <table class="table table-hover">
+              <tr>
+                <td>Bacon ipsum dolor sit amet salami </td>
+                <td>11-7-2014</td>
+              </tr>
+              <tr>
+                <td>Bacon ipsum dolor sit amet salami </td>
+                <td>11-7-2014</td>
+              </tr>
+              <tr>
+                <td>Bacon ipsum dolor sit amet salami </td>
+                <td>11-7-2014</td>
+              </tr>
+              <tr>
+                <td>Bacon ipsum dolor sit amet salami</td>
+                <td>11-7-2014</td>
+              </tr>
+              <tr>
+                <td>Bacon ipsum dolor sit amet salami </td>
+                <td>11-7-2014</td>
+              </tr>
+              <tr>
+                <td>Bacon ipsum dolor sit amet salami</td>
+                <td>11-7-2014</td>
+              </tr>
+                </tbody>
+            </table>
+          </div>
+          <!-- /.box-body -->
+          <div class="box-footer clearfix">
+            <ul class="pagination pagination-sm no-margin pull-right">
+              <li><a href="#">«</a></li>
+              <li><a href="#">1</a></li>
+              <li><a href="#">2</a></li>
+              <li><a href="#">3</a></li>
+              <li><a href="#">»</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="main-footer">
+    <div class="container">
+      <div class="pull-right hidden-xs"> <b>Version</b> 2.3.8 </div>
+      <strong>Copyright &copy; 2014-2016 <a href="http://almsaeedstudio.com">Almsaeed Studio</a>.</strong> All rights
+      reserved. </div>
+    <!-- /.container --> 
+  </footer>
+</div>
+<!-- ./wrapper --> 
+
+<!-- jQuery 2.2.3 --> 
+<script src="../plugins/jQuery/jquery-2.2.3.min.js"></script> 
+<!-- Bootstrap 3.3.6 --> 
+<script src="bootstrap/js/bootstrap.min.js"></script> 
+<script src="../plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js"></script> 
+<script>
+  $('.textarea').wysihtml5();
+</script>
+</body>
+</html>

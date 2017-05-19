@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="cuit.model.CommentBean" table="cmt_tab">
+        <id name="cId">
+            <column name="cid"/>
+        </id>
+        <property name="uId">
+            <column name="uid"/>
+        </property>
+        <property name="mId">
+            <column name="mid"/>
+        </property>
+        <property name="cParent_Id">
+            <column name="cparent_id"/>
+        </property>
+        <property name="cTime">
+            <column name="ctime"/>
+        </property>
+        <property name="cCommentText">
+            <column name="ctext"/>
+        </property>
+        <property name="cRoot_Id">
+            <column name="croot_id"/>
+        </property>
+    </class>
+</hibernate-mapping>

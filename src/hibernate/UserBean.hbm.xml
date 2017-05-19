@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="cuit.model.UserBean" table="user_tab">
+        <id name="id">
+            <column name="u_id"/>
+        </id>
+        <property name="name">
+            <column name="u_name"/>
+        </property>
+        <property name="pass">
+            <column name="u_pass"/>
+        </property>
+        <property name="date">
+            <column name="u_date"/>
+        </property>
+        <property name="education">
+            <column name="u_edu"/>
+        </property>
+        <property name="email">
+            <column name="u_email"/>
+        </property>
+        <property name="intro">
+            <column name="u_intro"/>
+        </property>
+        <property name="location">
+            <column name="u_addr"/>
+        </property>
+        <property name="pic">
+            <column name="u_pic"/>
+        </property>
+        <property name="profession">
+            <column name="u_pro"/>
+        </property>
+        <property name="skills">
+            <column name="u_skills"/>
+        </property>
+    </class>
+</hibernate-mapping>

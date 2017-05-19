@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="cuit.model.MessageBean" table="msg_tab">
+        <id name="mId">
+            <column name="mid"/>
+        </id>
+        <property name="uId">
+            <column name="uid"/>
+        </property>
+        <property name="mTime">
+            <column name="mtime"/>
+        </property>
+        <property name="mSource">
+            <column name="msource"/>
+        </property>
+        <property name="mStore_uri">
+            <column name="mstore_uri"/>
+        </property>
+        <property name="mTitle">
+            <column name="mtitle"/>
+        </property>
+        <property name="mIntro">
+            <column name="mintro"/>
+        </property>
+        <property name="mContext">
+            <column name="mcontext"/>
+        </property>
+        <property name="mPic">
+            <column name="mpic"/>
+        </property>
+        <property name="mLike_Count">
+            <column name="mlike_count"/>
+        </property>
+        <property name="mCollect_Count">
+            <column name="mcollect_count"/>
+        </property>
+        <property name="mTransmit_Count">
+            <column name="mtransmit_count"/>
+        </property>
+        <property name="mHavePic">
+            <column name="mhavepic"/>
+        </property>
+    </class>
+</hibernate-mapping>
