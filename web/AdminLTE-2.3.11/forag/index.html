@@ -25,11 +25,28 @@
   <script src="js/respond.min.js"></script>
   <![endif]-->
 </head>
+<!--css -->
+<style>
+  .btn-app {
+    border-radius: 0px;
+    position: relative;
+    padding: 0;
+    margin: -23px 0px 0px 0px;
+    min-width: 0px;
+    height: 0px;
+    text-align: center;
+    color: #666;
+    border: 0;
+    background-color: #f4f4f4;
+    font-size: 16px;
+  }
+</style>
 <!--js -->
 <script>
     //全局颜色标签
     var boxColor = ["box-primary","box-danger","box-success","box-info"];
     var liColor = ["bg-info","bg-green","bg-teal"];
+    var btnColors = ["btn-primary","btn-danger","btn-success","btn-info","btn-warning"]
     /*全局对象*/
     //HTTP对象
     var xmlHttp;
@@ -127,6 +144,11 @@
                 //交互成功获得响应的数据，是文本格式,并解析
                 var xmlResult = xmlHttp.responseText;
                 var jsonObj = eval("("+xmlResult+")");//转化为JSON对象
+                var dataState = jsonObj.dataState;
+                if (dataState == "notHaveData"){
+                    alert("后台推荐数据为空，请联系管理员。\nQQ:1300730251");
+                    return;
+                }
                 var hotTags = jsonObj.tags;
                 var hotTagName = jsonObj.tagName;
                 var datas = jsonObj.msgData;
@@ -202,6 +224,31 @@
                     topic1.innerHTML = temp;
                 }
             }
+        }
+    }
+    //保存一下上次操作的数据，做一次撤销操作用
+    var rollbackTagsList = "";
+    function deleteTag(obj) {
+        var parentElement = obj.parentElement;
+        rollbackTagsList = parentElement.innerHTML;
+        parentElement.removeChild(obj);
+    }
+    function addTagToNowTagList(obj) {
+        var parentPNode = document.getElementById("all-tags-a-span");
+        var tempHtml = "<button type='button' class='"+obj.className+"' style='padding: 0 2px;margin-top: 5px' onclick='deleteTag(this)'>"
+                      +obj.innerHTML+"</button>";
+        parentPNode.innerHTML += tempHtml;
+    }
+    function rollbackDeleteTag() {
+        if (rollbackTagsList == ""){
+            return;
+        }
+        var parentPNode = document.getElementById("all-tags-a-span");
+        if (parentPNode.innerHTML == rollbackTagsList){
+            alert("只能够撤销一次！");
+        }
+        else{
+            parentPNode.innerHTML = rollbackTagsList;
         }
     }
 </script>
@@ -415,41 +462,51 @@
                             &times;
                         </button>
                         <h4 class="modal-title" id="myModalLabel">
-                            Edit Tags
+                          Now Tags
                         </h4>
                     </div>
                     <div class="modal-body">
                         <p id="all-tags-a-span">
-                          <a href="#" class="link-black"><span class="label label-danger margin-r-5"><span class="badge bg-red">1</span>UI Design</span></a>
-                          <a href="#" class="link-black"><span class="label label-success margin-r-5">Coding</span></a>
-                          <a href="#" class="link-black"><span class="label label-info margin-r-5">Javascript</span></a>
-                          <a href="#" class="link-black"><span class="label label-warning margin-r-5">PHP</span></a>
-                          <a href="#" class="link-black"><span class="label label-primary margin-r-5">Node.js</span></a>
-                          <a href="#" class="link-black"><span class="label label-info margin-r-5">Javascript</span></a>
-                          <a href="#" class="link-black"><span class="label label-warning margin-r-5">PHP</span></a>
+                          <button type="button" class="btn btn-info margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">UI Design</button>
+                          <button type="button" class="btn btn-primary margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Coding</button>
+                          <button type="button" class="btn btn-success margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Javascript</button>
+                          <button type="button" class="btn btn-danger margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">PHP</button>
+                          <button type="button" class="btn btn-warning margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Node.js</button>
+                          <button type="button" class="btn btn-danger margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Javascript</button>
+                          <button type="button" class="btn btn-success margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Vue.js</button>
+                          <button type="button" class="btn btn-primary margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Hibernate</button>
+                          <button type="button" class="btn btn-info margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Spring</button>
+                          <button type="button" class="btn btn-warning margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="deleteTag(this)">Mybatis</button>
                         </p>
                     </div>
                     <div class="modal-header">
                       <h4 class="modal-title pull-left" style="width: 30%">
-                        Select Tag
+                        <i class="fa fa-pencil margin-r-5"></i>Change Tags
                       </h4>
                       <div class="input-group pull-right" style="width: 40%">
                         <input name="message" placeholder="Type Message ..." class="form-control" type="text">
                         <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary btn-flat">Search</button>
+                        <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-fw fa-search"></i></button>
                       </span>
                       </div>
                     </div>
                   <div class="modal-body">
                     <p id="select-tags-a-span">
-                      <a href="#" class="link-black"><span class="label label-danger margin-r-5">UI Design</span></a>
-                      <a href="#" class="link-black"><span class="label label-success margin-r-5">Coding</span></a>
-                      <a href="#" class="link-black"><span class="label label-info margin-r-5">Javascript</span></a>
-                      <a href="#" class="link-black"><span class="label label-warning margin-r-5">PHP</span></a>
-                      <a href="#" class="link-black"><span class="label label-primary margin-r-5">Node.js</span></a>
-                      <a href="#" class="link-black"><span class="label label-info margin-r-5">Javascript</span></a>
-                      <a href="#" class="link-black"><span class="label label-warning margin-r-5">PHP</span></a>
+                      <button type="button" class="btn btn-info margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">UI Design</button>
+                      <button type="button" class="btn btn-primary margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Coding</button>
+                      <button type="button" class="btn btn-success margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Javascript</button>
+                      <button type="button" class="btn btn-danger margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">PHP</button>
+                      <button type="button" class="btn btn-warning margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Node.js</button>
+                      <button type="button" class="btn btn-danger margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Javascript</button>
+                      <button type="button" class="btn btn-success margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Vue.js</button>
+                      <button type="button" class="btn btn-primary margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Hibernate</button>
+                      <button type="button" class="btn btn-info margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Spring</button>
+                      <button type="button" class="btn btn-warning margin-r-5" style="padding: 0 2px;margin-top: 5px" onclick="addTagToNowTagList(this)">Mybatis</button>
                     </p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
                   </div>
                 </div><!-- /.modal-content -->
             </div><!-- /.modal -->
@@ -474,7 +531,7 @@
                       </div>
                     </div>
                     <div class="box-footer">
-                      <ul class="list-inline" style="margin-bottom:0px;">
+                      <ul class="list-inline" style="margin-bottom:0;">
                         <li> <a href="#" class="link-black text-sm"><i class="margin-r-5"><span class="badge bg-info">广告</span></i></a> </li>
                         <li> <a href="#" class="link-black text-sm"><i class="margin-r-5"><span class="badge bg-green">标签一</span></i></a> </li>
                         <li> <a href="#" class="link-black text-sm"><i class="margin-r-5"><span class="badge bg-teal">标签二</span></i></a> </li>

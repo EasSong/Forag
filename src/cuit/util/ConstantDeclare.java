@@ -34,4 +34,11 @@ public class ConstantDeclare {
 	
 	public static final String DEFAULT_USER_IMAGE_PATH = "..\\..\\WebRoot\\AdminLTE-2.3.11\\forag\\images\\userDefaultPic.jpg";
 	public static final int MAX_FILE_READ_COUNT = 1024;
+	/*
+	日志文件操作代码
+	 */
+	public static final int ERROR_WRITE_LOG = -21;
+	public static final int SUCCESS_WRITE_LOG = -22;
+	public static final int ERROR_READ_LOG = -23;
+	public static final int SUCCESS_READ_LOG = -24;
 }

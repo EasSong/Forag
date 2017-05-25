@@ -66,12 +66,13 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public ArrayList<Integer> selectHotTagByDate(String nowDate) {
-        String[] result = messageDao.selectHotTagByDate(nowDate).split(",");
-        if(result.length <= 0 || result == null){
+        String result = messageDao.selectHotTagByDate(nowDate);
+        if(result == "" || result == null){
             return null;
         }
+        String[] resultArr = result.split(",");
         ArrayList<Integer> iResultArray = new ArrayList<>();
-        for (String temp:result){
+        for (String temp:resultArr){
             iResultArray.add(Integer.parseInt(temp));
         }
         return iResultArray;

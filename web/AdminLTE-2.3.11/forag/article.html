@@ -186,8 +186,7 @@
         boxComments.innerHTML = "";
         var tempHTML = "";
         var rootCount = 0;
-        var i;
-        for (i = beginSubscript+(nowPageNumber-1)*maxComment; i < parseInt(commentRootCount); i++){
+        for (var i = beginSubscript+(nowPageNumber-1)*maxComment; i < parseInt(commentRootCount); i++){
             if (rootCount >= maxComment){
                 break;
             }
@@ -421,7 +420,7 @@
                     <!-- end notification -->
                   </ul>
                 </li>
-                <li class="footer"><a href="userProfile.html">See all</a></li>
+                <li class="footer"><a href="userProfile.jsp">See all</a></li>
               </ul>
             </li>
             <!-- Tasks Menu -->
@@ -447,7 +446,7 @@
                   </ul>
                   <!-- /.menu --> 
                 </li>
-                <li class="footer"><a href="userProfile.html">See All</a></li>
+                <li class="footer"><a href="userProfile.jsp">See All</a></li>
               </ul>
             </li>
             <!-- User Account Menu -->
@@ -490,7 +489,7 @@
                 </li>
                 <!-- Menu Footer-->
                 <li class="user-footer">
-                  <div class="pull-left"> <a href="userProfile.html" class="btn btn-default btn-flat">Profile</a> </div>
+                  <div class="pull-left"> <a href="userProfile.jsp" class="btn btn-default btn-flat">Profile</a> </div>
                   <div class="pull-right"> <a href="#" class="btn btn-default btn-flat">Sign out</a> </div>
                 </li>
               </ul>
