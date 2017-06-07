@@ -88,12 +88,12 @@ public class MessageDaoImpl implements MessageDao {
     返回所有符合tag的所有文章的集合
      */
     @Override
-    public ArrayList<MessageBean> selectByTag(int tag) {
+    public ArrayList<MessageBean> selectByTag(String tag) {
         ArrayList<MessageBean> listMessage = new ArrayList<>();
 
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
-        Query sqlQueryMId = session.createNativeQuery("select mid,mtweight,tname from msg_to_tag_tab mt,tag_tab t where mt.tid=t.tid and mt.tid="+tag+" order by mtweight desc");
+        Query sqlQueryMId = session.createNativeQuery("select mid,mtweight,tname from foragOwner.msgtotagtab where tname='"+tag+"' order by mtweight desc");
         List midList = sqlQueryMId.getResultList();
         String hqlQueryString = "from MessageBean m where m.mId in (";
         if (midList.size() <= 0){
@@ -130,7 +130,7 @@ public class MessageDaoImpl implements MessageDao {
 
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
-        Query query = session.createQuery("update MessageBean m set m.mLike_Count=m.mLike_Count+1 where m.mId=?");
+        Query query = session.createQuery("update MessageBean m set m.mLikeCount=m.mLikeCount+1 where m.mId=?");
         query.setParameter(0,mId);
         int state = query.executeUpdate();
         if (state <= 0){
@@ -151,7 +151,7 @@ public class MessageDaoImpl implements MessageDao {
 
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
-        Query query = session.createQuery("update MessageBean m set m.mCollect_Count=m.mCollect_Count+1 where m.mId=?");
+        Query query = session.createQuery("update MessageBean m set m.mCollectCount=m.mCollectCount+1 where m.mId=?");
         query.setParameter(0,mId);
         int state = query.executeUpdate();
         if (state <= 0){
@@ -172,7 +172,7 @@ public class MessageDaoImpl implements MessageDao {
 
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
-        Query query = session.createQuery("update MessageBean m set m.mTransmit_Count=m.mTransmit_Count+1 where m.mId=?");
+        Query query = session.createQuery("update MessageBean m set m.mTransmitCount=m.mTransmitCount+1 where m.mId=?");
         query.setParameter(0,mId);
         int state = query.executeUpdate();
         if (state <= 0){
@@ -189,7 +189,7 @@ public class MessageDaoImpl implements MessageDao {
 
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
-        Query query = session.createNativeQuery("select * from hot_tag_tab where htdate='"+nowDate+"'   ");
+        Query query = session.createNativeQuery("select * from foragOwner.hottagtab where to_char(htdate,'yyyy-mm-dd') = '"+nowDate+"'");
         List list = query.getResultList();
         if (list.size() > 0){
             Object[] cell = (Object[]) list.get(0);
@@ -220,10 +220,29 @@ public class MessageDaoImpl implements MessageDao {
     }
 
     @Override
+    public List selectTagIdByNames(String[] names) {
+        if (names.length <= 0){
+            return null;
+        }
+        Session session = sessionFactory.getCurrentSession();
+        session.beginTransaction();
+        String sqlQueryStr = "select tid from tag_tab where tname in ('";
+        for (String name:names){
+            sqlQueryStr += name+"','";
+        }
+        sqlQueryStr = sqlQueryStr.substring(0,sqlQueryStr.length()-2);
+        sqlQueryStr += ")";
+        Query sqlQuery = session.createNativeQuery(sqlQueryStr);
+        List list = sqlQuery.getResultList();
+        session.getTransaction().commit();
+        return list;
+    }
+
+    @Override
     public List selectTagListByMId(int MId) {
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
-        String sqlQueryStr = "select t.tid,tname,mtweight from tag_tab t,msg_to_tag_tab mt where t.tid=mt.tid and mt.mid="
+        String sqlQueryStr = "select tname,mtweight from foragOwner.msgtotagtab where mid="
                 +MId+" order by mtweight desc";
         Query sqlQuery = session.createNativeQuery(sqlQueryStr);
         List list = sqlQuery.getResultList();

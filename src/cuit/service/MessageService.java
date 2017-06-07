@@ -15,11 +15,12 @@ public interface MessageService {
     int update(MessageBean messageBean);
     MessageBean selectById(int mId);
     ArrayList<MessageBean> selectAll();
-    ArrayList<MessageBean> selectByTag(int tag);
+    ArrayList<MessageBean> selectByTag(String tag);
     int updateLikeCountById(int mId);
     int updateCollectCountById(int mId);
     int updateTransmitCountById(int mId);
-    ArrayList<Integer> selectHotTagByDate(String nowDate);
+    ArrayList<String> selectHotTagByDate(String nowDate);
     JSONArray selectHotTagNameByTags(ArrayList<Integer> tags);
+    ArrayList<Integer> selectTagIdByNames(String[] names);
     JSONObject selectTagListByMId(int MId);
 }

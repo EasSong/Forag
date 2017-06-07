@@ -13,11 +13,18 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
     <bean id="sessionFactory"
             class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+                <prop key="hibernate.dialect">cuit.util.MyOracleDialect</prop>
                 <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.connection.driver_class">oracle.jdbc.driver.OracleDriver</prop>
+                <prop key="hibernate.connection.url">
+                    jdbc:oracle:thin:foragCollecter_1/foragCollecter@10.18.50.229:1521:orcl
+                </prop>
+                <!--用户名-->
+                <prop key="hibernate.connection.username">foragCollecter_1</prop>
+                <!--密码-->
+                <prop key="hibernate.connection.password">foragCollecter</prop>
                 <prop key="hibernate.current_session_context_class">thread</prop>
             </props>
         </property>

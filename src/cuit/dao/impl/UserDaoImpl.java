@@ -18,11 +18,11 @@ public class UserDaoImpl implements UserDao{
 	
 	//为忽略不同数据库存储过程语法的差异，暂时使用标准sql语句，getdate()为SqlServer中获取当前时间的函数
 	//以下语句均为HQL语句，表名必须用别名
-    private final String SQL_USER_LOGIN = "from UserBean u where u.email=?";
+    private final String SQL_USER_LOGIN = "from UserBean u where u.utMail=?";
 	private final String SQL_QUERY_PASSWORD = "from UserBean u where u.id=?";
-	private final String SQL_EDIT_PASSWORD = "update UserBean u set u.pass=? where u.id=?";
+	private final String SQL_EDIT_PASSWORD = "update UserBean u set u.utPass=? where u.id=?";
 	private final String SQL_GET_USER_SHOW_INFOR = "from UserBean u where u.id=?";
-	private final String SQL_UPDATE_USER_SHOW_INFOR = "update UserBean u set u.name=?,u.email=?,u.location=?,u.profession=?,u.education=?,u.intro=?,u.skills=? where u.id=?";
+	private final String SQL_UPDATE_USER_SHOW_INFOR = "update UserBean u set u.utName=?,u.utMail=?,u.utAddr=?,u.utPro=?,u.utEdu=?,u.utIntro=?,u.utSkill=? where u.utId=?";
 	
 	private UserDaoImpl(){
 	}
@@ -76,8 +76,8 @@ public class UserDaoImpl implements UserDao{
 				if (session.get(UserBean.class,1) == null) {
                     session.save(userBean);
                 }
-				if (userBean.getPass().equals(password)) {
-                    code = userBean.getId();
+				if (userBean.getUtPass().equals(password)) {
+                    code = userBean.getUtId();
                 }
                 else{
 				    code = ConstantDeclare.ERROR_PASSWORD_LOGIN;
@@ -108,7 +108,7 @@ public class UserDaoImpl implements UserDao{
             query.setParameter(0,id);
             List userList = query.list();
             if (userList.size() != 0){
-                String password = ((UserBean)userList.get(0)).getPass();
+                String password = ((UserBean)userList.get(0)).getUtPass();
                 if (password.equals(oldPassword)){
                     Query query1 = session.createQuery(SQL_EDIT_PASSWORD);
                     query1.setParameter(0,newPassword).setParameter(1,id);
@@ -137,7 +137,7 @@ public class UserDaoImpl implements UserDao{
         返回：用户对象
          */
 	@Override
-	public UserBean getUserDetail(int id) throws IOException {
+	public UserBean getUserDetail(int id) {
         Session session = sessionFactory.getCurrentSession();
         Transaction transaction = session.beginTransaction();
         UserBean userBean = new UserBean();
@@ -164,14 +164,14 @@ public class UserDaoImpl implements UserDao{
         Transaction transaction = session.beginTransaction();
         try{
             Query query = session.createQuery(SQL_UPDATE_USER_SHOW_INFOR);
-            query.setParameter(0,userBean.getName());
-            query.setParameter(1,userBean.getEmail());
-            query.setParameter(2,userBean.getLocation());
-            query.setParameter(3,userBean.getProfession());
-            query.setParameter(4,userBean.getEducation());
-            query.setParameter(5,userBean.getIntro());
-            query.setParameter(6,userBean.getSkills());
-            query.setParameter(7,userBean.getId());
+            query.setParameter(0,userBean.getUtName());
+            query.setParameter(1,userBean.getUtMail());
+            query.setParameter(2,userBean.getUtAddr());
+            query.setParameter(3,userBean.getUtPro());
+            query.setParameter(4,userBean.getUtEdu());
+            query.setParameter(5,userBean.getUtIntro());
+            query.setParameter(6,userBean.getUtSkill());
+            query.setParameter(7,userBean.getUtId());
             int resultId = query.executeUpdate();
             transaction.commit();
             if (resultId == 1){

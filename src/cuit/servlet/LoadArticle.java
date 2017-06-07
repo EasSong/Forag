@@ -1,12 +1,16 @@
 package cuit.servlet;
 
+import cuit.log.UserLog;
+import cuit.log.impl.UserLogImpl;
 import cuit.model.CommentBean;
+import cuit.model.LogInfo;
 import cuit.model.MessageBean;
 import cuit.model.UserBean;
 import cuit.service.CommentService;
 import cuit.service.MessageService;
 import cuit.service.UserService;
 import cuit.util.AppUtil;
+import cuit.util.MySocket;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -17,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.sql.Date;
 import java.util.ArrayList;
 
 /**
@@ -38,16 +43,17 @@ public class LoadArticle extends HttpServlet {
         //封装文章(Message)信息
         JSONObject jsonMSG = new JSONObject();
         jsonMSG.put("mId",messageBean.getmId());
-        jsonMSG.put("mTime",messageBean.getmTime().toString().substring(0,messageBean.getmTime().toString().length()-2));
+        jsonMSG.put("mTime",messageBean.getmPublishTime().toString().substring(0,messageBean.getmPublishTime().toString().length()-2));
         jsonMSG.put("mSource",messageBean.getmSource());
         jsonMSG.put("mTags",messageBean.getmTags());
-        jsonMSG.put("mStore_uri",messageBean.getmStore_uri());
         jsonMSG.put("mTitle",messageBean.getmTitle());
         jsonMSG.put("mIntro",messageBean.getmIntro());
-        jsonMSG.put("mContext",messageBean.getmContext());
-        jsonMSG.put("mLike_count",messageBean.getmLike_Count());
-        jsonMSG.put("mCollect_count",messageBean.getmCollect_Count());
-        jsonMSG.put("mTransmit_count",messageBean.getmTransmit_Count());
+        MySocket mySocket = new MySocket();
+        JSONObject contextData = mySocket.runSocket("{\"name\":\"generatePage\",\"params\":{\"pageid\":\""+messageBean.getmId()+"\",\"template\":\"articleTemplate.json\", \"userid\":\"123\"}}\r\n");
+        jsonMSG.put("mContext",contextData.get("result"));
+        jsonMSG.put("mLike_count",messageBean.getmLikeCount());
+        jsonMSG.put("mCollect_count",messageBean.getmCollectCount());
+        jsonMSG.put("mTransmit_count",messageBean.getmTransmitCount());
         jsonData.put("MSG",jsonMSG);
         //封装评论信息，判断是否有，无则封装标记字符串(notComment)
         if (listCommentBean.size() > 0){
@@ -61,14 +67,14 @@ public class LoadArticle extends HttpServlet {
                 jsonObject.put("cParent_Id",commentBean.getcParent_Id());
                 jsonObject.put("cTime",commentBean.getcTime().toString().substring(0,commentBean.getcTime().toString().length()-2));
                 UserBean userBean1 = userService.getUserDetail(commentBean.getuId());
-                jsonObject.put("userName",userBean1.getName());
+                jsonObject.put("userName",userBean1.getUtName());
                 jsonObject.put("cRoot_Id",commentBean.getcRoot_Id());
                 jsonObject.put("cCommentText",commentBean.getcCommentText());
                 if (commentBean.getcParent_Id() != -1) {
                     CommentBean tempCommentBean = commentService.selectById(commentBean.getcParent_Id());
                     UserBean userBean2 = userService.getUserDetail(tempCommentBean.getuId());
                     nodeCommentCount++;
-                    jsonObject.put("comment_username", userBean2.getName());
+                    jsonObject.put("comment_username", userBean2.getUtName());
                     jsonArrayNodeCOM.add(jsonObject);
                 }
                 else{
@@ -95,14 +101,19 @@ public class LoadArticle extends HttpServlet {
             jsonData.put("state","isLogin");
             UserBean userBean = (UserBean) httpSession.getAttribute("userShowInfor");
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("uId",userBean.getId());
-            jsonObject.put("uName",userBean.getName());
-            jsonObject.put("uEmail",userBean.getEmail());
-            jsonObject.put("uPic",userBean.getPic());
-            jsonObject.put("uProfession",userBean.getProfession());
-            jsonObject.put("uDate",userBean.getDate().toString().substring(0,userBean.getDate().toString().length()-2));
+            jsonObject.put("uId",userBean.getUtId());
+            jsonObject.put("uName",userBean.getUtName());
+            jsonObject.put("uEmail",userBean.getUtMail());
+            jsonObject.put("uPic",userBean.getuPic());
+            jsonObject.put("uProfession",userBean.getUtPro());
+            jsonObject.put("uDate",userBean.getUtDate().toString().substring(0,userBean.getUtDate().toString().length()-2));
             jsonData.put("userInfo",jsonObject);
+            UserLog userLog = new UserLogImpl();
+            Date date = new Date(System.currentTimeMillis());
+            LogInfo logInfo = new LogInfo(date.toString(),userBean.getUtId()+" browse msg "+mid ,userBean.getUtId()+" browse msg "+mid);
+            userLog.writeUserLog(String.valueOf(userBean.getUtId()),logInfo);
         }
+        System.out.println(jsonData.toString());
         response.getWriter().print(jsonData.toString());
     }
 

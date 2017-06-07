@@ -11,6 +11,6 @@ public interface UserService {
     int registerUser(UserBean userBean);
     int loginUser(String email, String password);
     int editUserPassword(int id, String oldPassword, String newPassword);
-    UserBean getUserDetail(int id) throws IOException;
+    UserBean getUserDetail(int id);
     int editUserDetail(UserBean userBean);
 }

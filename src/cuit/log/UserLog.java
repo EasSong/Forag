@@ -1,6 +1,7 @@
 package cuit.log;
 
 import cuit.model.LogInfo;
+import net.sf.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -9,6 +10,6 @@ import java.util.ArrayList;
  * 日志操作接口
  */
 public interface UserLog {
-    int writeUserLog(String uId, String date, String useType, String useLog);
-    ArrayList<LogInfo> readUserLog(String uId, String date, int length);
+    int writeUserLog(String uId, LogInfo logInfo);
+    JSONObject readUserLog(String uId, String date, int maxLength);
 }

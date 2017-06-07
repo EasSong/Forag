@@ -54,13 +54,13 @@ public class ShowInforEdit extends HttpServlet {
 			if (userShowInfor == null) {
 				response.setHeader("refresh", "1;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
 			} else {
-				userShowInfor.setName(request.getParameter("name"));
-				userShowInfor.setEmail(request.getParameter("email"));
-				userShowInfor.setLocation(request.getParameter("location"));
-				userShowInfor.setProfession(request.getParameter("profession"));
-				userShowInfor.setEducation(request.getParameter("education"));
-				userShowInfor.setSkills(request.getParameter("skills"));
-				userShowInfor.setIntro(request.getParameter("intro"));
+				userShowInfor.setUtName(request.getParameter("name"));
+				userShowInfor.setUtMail(request.getParameter("email"));
+				userShowInfor.setUtAddr(request.getParameter("location"));
+				userShowInfor.setUtPro(request.getParameter("profession"));
+				userShowInfor.setUtEdu(request.getParameter("education"));
+				userShowInfor.setUtSkill(request.getParameter("skills"));
+				userShowInfor.setUtIntro(request.getParameter("intro"));
 				stateCode = userService.editUserDetail(userShowInfor);
 			}
 
@@ -97,12 +97,12 @@ public class ShowInforEdit extends HttpServlet {
 				jsonObject.put("state","isLogin");
 				JSONObject jsonUser = new JSONObject();
 				UserBean userBean = (UserBean) session.getAttribute("userShowInfor");
-				jsonUser.put("uId",userBean.getId());
-				jsonUser.put("uName",userBean.getName());
-				jsonUser.put("uEmail",userBean.getEmail());
-				jsonUser.put("uPic",userBean.getPic());
-				jsonUser.put("uProfession",userBean.getProfession());
-				jsonUser.put("uDate",userBean.getDate());
+				jsonUser.put("uId",userBean.getUtId());
+				jsonUser.put("uName",userBean.getUtName());
+				jsonUser.put("uEmail",userBean.getUtMail());
+				jsonUser.put("uPic",userBean.getuPic());
+				jsonUser.put("uProfession",userBean.getUtPro());
+				jsonUser.put("uDate",userBean.getUtDate());
 				jsonObject.put("userInfor",jsonUser);
 				out.print(jsonObject.toString());
 			}

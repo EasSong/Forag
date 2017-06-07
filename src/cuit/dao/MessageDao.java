@@ -16,11 +16,12 @@ public interface MessageDao {
     int update(MessageBean messageBean);
     MessageBean selectById(int mId);
     ArrayList<MessageBean> selectAll();
-    ArrayList<MessageBean> selectByTag(int tag);
+    ArrayList<MessageBean> selectByTag(String tag);
     int updateLikeCountById(int mId);
     int updateCollectCountById(int mId);
     int updateTransmitCountById(int mId);
     String selectHotTagByDate(String nowDate);
     List selectHotTagNameByTags(ArrayList<Integer> tags);
+    List selectTagIdByNames(String[] names);
     List selectTagListByMId(int MId);
 }

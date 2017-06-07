@@ -55,7 +55,7 @@ public class PasswordEdit extends HttpServlet {
 			response.setHeader("refresh","1;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
 		}
 		else{
-			stateCode = userService.editUserPassword(userShowInfor.getId(), oldPassword, newPassword);
+			stateCode = userService.editUserPassword(userShowInfor.getUtId(), oldPassword, newPassword);
 		}
 		
 		if (stateCode != ConstantDeclare.SUCCESS_EDIT_PASSWORD){

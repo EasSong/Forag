@@ -6,6 +6,7 @@ import cuit.service.MessageService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public ArrayList<MessageBean> selectByTag(int tag) {
+    public ArrayList<MessageBean> selectByTag(String tag) {
         return messageDao.selectByTag(tag);
     }
 
@@ -65,15 +66,15 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public ArrayList<Integer> selectHotTagByDate(String nowDate) {
+    public ArrayList<String> selectHotTagByDate(String nowDate) {
         String result = messageDao.selectHotTagByDate(nowDate);
         if(result == "" || result == null){
             return null;
         }
         String[] resultArr = result.split(",");
-        ArrayList<Integer> iResultArray = new ArrayList<>();
+        ArrayList<String> iResultArray = new ArrayList<>();
         for (String temp:resultArr){
-            iResultArray.add(Integer.parseInt(temp));
+            iResultArray.add(temp);
         }
         return iResultArray;
     }
@@ -94,19 +95,31 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public ArrayList<Integer> selectTagIdByNames(String[] names) {
+        List list = messageDao.selectTagIdByNames(names);
+        if (list.size() <= 0){
+            System.out.println("The tag list is empty");
+            return null;
+        }
+        ArrayList<Integer> arrResult = new ArrayList<>();
+        for (Object obj:list){
+            Integer temp = ((BigInteger)obj).intValue();
+            arrResult.add(temp);
+        }
+        return arrResult;
+    }
+
+    @Override
     public JSONObject selectTagListByMId(int MId) {
         JSONObject tagData = new JSONObject();
-        JSONArray tagId = new JSONArray();
         JSONArray tagName = new JSONArray();
         JSONArray tagWeight = new JSONArray();
         List list = messageDao.selectTagListByMId(MId);
         for (Object obj:list){
             Object[] row = (Object[])obj;
-            tagId.add(String.valueOf(row[0]));
-            tagName.add(String.valueOf(row[1]));
-            tagWeight.add(String.valueOf(row[2]));
+            tagName.add(String.valueOf(row[0]));
+            tagWeight.add(String.valueOf(row[1]));
         }
-        tagData.put("tagId",tagId);
         tagData.put("tagName",tagName);
         tagData.put("tagWeight",tagWeight);
         return tagData;

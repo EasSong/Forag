@@ -2,39 +2,42 @@
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class name="cuit.model.UserBean" table="user_tab">
-        <id name="id">
-            <column name="u_id"/>
+    <class name="cuit.model.UserBean" table="foragOwner.usertab">
+        <id name="utId">
+            <column name="utId"/>
         </id>
-        <property name="name">
-            <column name="u_name"/>
+        <property name="utName">
+            <column name="utName"/>
         </property>
-        <property name="pass">
-            <column name="u_pass"/>
+        <property name="utPass">
+            <column name="utPass"/>
         </property>
-        <property name="date">
-            <column name="u_date"/>
+        <property name="utFeatureUri">
+            <column name="utFeatureUri"/>
         </property>
-        <property name="education">
-            <column name="u_edu"/>
+        <property name="utMail">
+            <column name="utMail"/>
         </property>
-        <property name="email">
-            <column name="u_email"/>
+        <property name="utDate">
+            <column name="utDate"/>
         </property>
-        <property name="intro">
-            <column name="u_intro"/>
+        <property name="utAddr">
+            <column name="utAddr"/>
         </property>
-        <property name="location">
-            <column name="u_addr"/>
+        <property name="utPro">
+            <column name="utPro"/>
         </property>
-        <property name="pic">
-            <column name="u_pic"/>
+        <property name="utEdu">
+            <column name="utEdu"/>
         </property>
-        <property name="profession">
-            <column name="u_pro"/>
+        <property name="utIntro">
+            <column name="utIntro"/>
         </property>
-        <property name="skills">
-            <column name="u_skills"/>
+        <property name="utSkill">
+            <column name="utSkill"/>
+        </property>
+        <property name="uPic">
+            <column name="uPic"/>
         </property>
     </class>
 </hibernate-mapping>

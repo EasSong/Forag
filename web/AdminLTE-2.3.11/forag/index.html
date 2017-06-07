@@ -24,6 +24,7 @@
   <script src="js/html5shiv.js"></script>
   <script src="js/respond.min.js"></script>
   <![endif]-->
+  <script src="js/forag_util.js"></script>
 </head>
 <!--css -->
 <style>
@@ -48,6 +49,8 @@
     var liColor = ["bg-info","bg-green","bg-teal"];
     var btnColors = ["btn-primary","btn-danger","btn-success","btn-info","btn-warning"]
     /*全局对象*/
+    //保存当前页面标签
+    var arrTags = [];
     //HTTP对象
     var xmlHttp;
     //获得xmlHttp对象
@@ -82,18 +85,18 @@
                     var userInfor = temp.userInfor;
                     document.getElementById("profile-user-name").innerHTML = userInfor.uName;
                     document.getElementById("profile-user-name-hidden").innerHTML = userInfor.uName;
-                    LoadMSG("type=hot");
+                    LoadMSG("type=hot&ChangeState=noChange");
                 }
                 else if(temp.state == "notLogin"){
                     topLinkUl.display = "inline";
                     topUserInforUl.display = "none";
-                    LoadMSG("type=hot");
+                    LoadMSG("type=hot&ChangeState=noChange");
                 }
                 else if (temp.state == "success"){
                     location.href="/AdminLTE-2.3.11/forag/index.html";
                     topLinkUl.display = "inline";
                     topUserInforUl.display = "none";
-                    LoadMSG("type=special");
+                    LoadMSG("type=special&ChangeState=noChange");
                 }
             }
         }
@@ -136,6 +139,7 @@
         xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
         xmlHttp.send(data);
     }
+    var hotTagName = "";
     function LoadMSGCallback() {
         //4代表完成
         if (xmlHttp.readyState == 4) {
@@ -150,30 +154,74 @@
                     return;
                 }
                 var hotTags = jsonObj.tags;
-                var hotTagName = jsonObj.tagName;
+                hotTagName = jsonObj.tagName;
+                var nowHotTags = jsonObj.nowHotTags;
+                arrTags = hotTagName;
                 var datas = jsonObj.msgData;
-
-                var topNavLis = document.getElementById("top-tag-nav-ul").getElementsByTagName("li");
-                for (var i = 0; i < topNavLis.length - 1; i++){
-                    if (i >= hotTagName.length){
-                        break;
+                var nowTagNodes = document.getElementById("all-tags-a-span");
+                nowTagNodes.innerHTML = "";
+                var tempBtnTagHtml = "";
+                var tempTopTagHtml = "";
+                var topNavLis = document.getElementById("top-tag-nav-ul");
+                var beforeIndex = -1;
+                //初始化选项卡导航与当前选择标签
+                for (var i = 0; i < hotTagName.length; i++){
+                    var index = parseInt(Math.random()*5);
+                    while (index == beforeIndex){
+                        index = parseInt(Math.random()*5);
                     }
-                    topNavLis[i].getElementsByTagName("a")[0].innerHTML = hotTagName[i];
+                    beforeIndex = index;
+                    tempBtnTagHtml += "<button type='button' class='btn "+btnColors[index]+" margin-r-5' style='padding: 0 2px;margin-top: 5px' onclick='deleteTag(this)'>"
+                        +hotTagName[i]+"</button>";
+//                    topNavLis[i].getElementsByTagName("a")[0].innerHTML = hotTagName[i];
+                    if (i == 0){
+                        tempTopTagHtml += "<li class='active'><a href='#topic"+i+"' data-toggle='tab' aria-expanded='true' onclick='alert('1231')'>"+hotTagName[i]+"</a></li>";
+                    }else {
+                        tempTopTagHtml += "<li class=''><a href='#topic"+i+"' data-toggle='tab' aria-expanded='true' onclick='alert('1231')'>"+hotTagName[i]+"</a></li>";
+                    }
                 }
+                var dropTagSelector = document.getElementById("dropdown-tags-selector");
+                nowTagNodes.innerHTML = tempBtnTagHtml;
+                topNavLis.innerHTML = tempTopTagHtml;
+                topNavLis.appendChild(dropTagSelector);
+                //初始化热门标签
+                var selectTagsASpan = document.getElementById("select-tags-a-span");
+                tempBtnTagHtml = "";
+                if (nowHotTags.length <= 0){
+                    tempBtnTagHtml = "当前没有热门标签。";
+                }
+                for (var i = 0; i < nowHotTags.length; i++){
+                    var index = parseInt(Math.random()*5);
+                    while (index == beforeIndex){
+                        index = parseInt(Math.random()*5);
+                    }
+                    beforeIndex = index;
+                    tempBtnTagHtml += "<button type='button' class='btn "+btnColors[index]+" margin-r-5' style='padding: 0 2px;margin-top: 5px' onclick='addTagToNowTagList(this)'>"
+                        +nowHotTags[i]+"</button>";
+                }
+//                alert((document.body.scrollWidth - 40)/2);
+                selectTagsASpan.innerHTML = tempBtnTagHtml;
                 //获取当前所有卡片页
-                var tabContents = document.getElementById("tab-content-id").children;
-                for (var m = 0; m < tabContents.length; m++) {
+                var tabContents = document.getElementById("tab-content-id");
+                var tempTabContentHtml = "";
+                for (var m = 0; m < hotTagName.length; m++) {
                     if (m >= datas.length){
                         break;
                     }
-                    var topic1 = tabContents[m].getElementsByTagName("div")[0];
+                    var activeFlag = "";
+                    if (m == 0){
+                        activeFlag = " active";
+                    }
+                    tempTabContentHtml += "<div class='tab-pane"+activeFlag+"' id='topic"+m+"'>"
+                                         +"<div class='container-fluid'>";
+
                     if (hotTags[m] == -1){
-                        topic1.innerHTML = "这个标签下没有文章可以推荐。";
+                        tempTabContentHtml += "这个标签下没有文章可以推荐。";
+                        tempTabContentHtml += "</div></div>";
                         continue;
                     }
                     var data = datas[m].data;
                     var msgCount = datas[m].count;
-                    topic1.innerHTML = "";
                     var temp = "";
                     for (var i = 0; i < msgCount; i++) {
                         temp += "<div class='col-md-6'>"
@@ -185,10 +233,10 @@
                             + "<div class='box-body'>";
                         var t = "style='width:100%'"
                         if (data[i].mHavePic == 1 || i == 0 || i == 4) {
-                            temp += "<div class='col-md-3'> " +
+                            temp += "<div class='col-md-6'> " +
                                 <!--pic url->data[i].mPicUri -->
                                 "<img src='images/067d87581b5b6d78da66d4a98f0b030c.jpg' class='img-responsive'/> </div>";
-                            t = "class='col-md-6' style='width:100%'";
+                            t = "class='col-md-6'";
                         }
                         temp += "<div " + t + ">"
                             + "<div class='user-block' style='margin-top:5px;'> <img class='img-circle img-bordered-sm' src='../dist/img/user1-128x128.jpg' alt='user image'> "
@@ -221,23 +269,44 @@
                             + "</div>"
                             + "</div>"
                     }
-                    topic1.innerHTML = temp;
+                    tempTabContentHtml += temp;
+                    tempTabContentHtml += "</div></div>";
                 }
+                tabContents.innerHTML = tempTabContentHtml;
+                reComposing("tab-content-id");
+            }
+        }
+    }
+    //增加数组的删除功能
+    Array.prototype.removeByValue = function(val) {
+        for(var i=0; i<this.length; i++) {
+            if(this[i] == val) {
+                this.splice(i, 1);
+                break;
             }
         }
     }
     //保存一下上次操作的数据，做一次撤销操作用
     var rollbackTagsList = "";
     function deleteTag(obj) {
+        if (arrTags.length <= 1){
+            alert("至少保留1个标签");
+            return;
+        }
         var parentElement = obj.parentElement;
-        rollbackTagsList = parentElement.innerHTML;
         parentElement.removeChild(obj);
+        arrTags.removeByValue(obj.innerHTML);
     }
     function addTagToNowTagList(obj) {
+        if (arrTags.length >= 8){
+            alert("最多存在8个标签");
+            return;
+        }
         var parentPNode = document.getElementById("all-tags-a-span");
         var tempHtml = "<button type='button' class='"+obj.className+"' style='padding: 0 2px;margin-top: 5px' onclick='deleteTag(this)'>"
                       +obj.innerHTML+"</button>";
         parentPNode.innerHTML += tempHtml;
+        arrTags.push(obj.innerHTML);
     }
     function rollbackDeleteTag() {
         if (rollbackTagsList == ""){
@@ -245,11 +314,16 @@
         }
         var parentPNode = document.getElementById("all-tags-a-span");
         if (parentPNode.innerHTML == rollbackTagsList){
-            alert("只能够撤销一次！");
+            alert("没有任何改变");
         }
         else{
             parentPNode.innerHTML = rollbackTagsList;
+            arrTags = hotTagName;
         }
+    }
+    function submitChangeTags() {
+        alert(arrTags);
+        LoadMSG("type=hot&ChangeState=changed&listTags="+arrTags);
     }
 </script>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
@@ -413,7 +487,7 @@
         <li data-slide-to="1" data-target="#hot_carousel"></li>
         <li data-slide-to="2" data-target="#hot_carousel"></li>
       </ol>
-      <div class="carousel-inner">
+      <div class="carousel-inner" id="carousel-inner-img">
         <div class="item active img-responsive"> <img alt="Carousel Bootstrap First" src="images/bb9dba34778496b36b42b115aba5565c.jpg">
           <div class="carousel-caption">
             <h4>Second Thumbnail label</h4>
@@ -452,9 +526,9 @@
           <li class=""><a href="#topic4" data-toggle="tab" aria-expanded="false">Topic4</a></li>
           <li class=""><a href="#topic5" data-toggle="tab" aria-expanded="false">Topic5</a></li>
           <li class=""><a href="#topic6" data-toggle="tab" aria-expanded="false">Topic6</a></li>
-          <li class="dropdown pull-right">
+          <li class="dropdown pull-right" id="dropdown-tags-selector">
             <a href="#" class="dropdown-toggle"  data-toggle="modal" data-target="#myModal">All Topic<span class="caret"></span></a>
-          	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" backdrop="static">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -506,7 +580,8 @@
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-primary" onclick="rollbackDeleteTag()">Reset</button>
+                    <button type="button" class="btn btn-primary" onclick="submitChangeTags()" data-dismiss="modal">Save changes</button>
                   </div>
                 </div><!-- /.modal-content -->
             </div><!-- /.modal -->
@@ -675,5 +750,23 @@
 <script src="../plugins/jQuery/jquery-2.2.3.min.js"></script> 
 <!-- Bootstrap 3.3.6 --> 
 <script src="bootstrap/js/bootstrap.min.js"></script>
+<!-- Modal-->
 </body>
+<script>
+    //监听关闭事件
+    $(function () {
+        $('#myModal').on('hide.bs.modal', function () {
+            var parentPNode = document.getElementById("all-tags-a-span");
+            parentPNode.innerHTML = rollbackTagsList;
+        })
+        $('#myModal').on('shown.bs.modal', function () {
+            // 执行一些动作...
+            var parentPNode = document.getElementById("all-tags-a-span");
+            rollbackTagsList = parentPNode.innerHTML;
+        })
+    });
+    window.onresize = function(){
+        reComposing("tab-content-id");
+    }
+</script>
 </html>

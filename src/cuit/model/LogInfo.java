@@ -5,8 +5,14 @@ package cuit.model;
  */
 public class LogInfo {
     private String date;
-    private String useType;
-    private String useLog;
+    private String logType;
+    private String logContent;
+
+    public LogInfo(String date, String logType, String logContent){
+        this.date = date;
+        this.logType = logType;
+        this.logContent = logContent;
+    }
 
     public String getDate() {
         return date;
@@ -16,19 +22,21 @@ public class LogInfo {
         this.date = date;
     }
 
-    public String getUseType() {
-        return useType;
+    public String getLogType() {
+        return logType;
     }
 
-    public void setUseType(String useType) {
-        this.useType = useType;
+    public void setLogType(String logType) {
+        this.logType = logType;
     }
 
-    public String getUseLog() {
-        return useLog;
+    public String getLogContent() {
+        return logContent;
     }
 
-    public void setUseLog(String useLog) {
-        this.useLog = useLog;
+    public void setLogContent(String logContent) {
+        this.logContent = logContent;
     }
+
+
 }

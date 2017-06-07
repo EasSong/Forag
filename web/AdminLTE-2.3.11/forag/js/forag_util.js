@@ -33,3 +33,55 @@ function createXMLHttp() {
     }
     return xmlHttp;
 }
+
+function reComposing(tabContentId) {
+    var tabContents = document.getElementById(tabContentId).children;
+    for (var i = 0; i < tabContents.length; i++){
+        var colList = tabContents[i].children[0].children;
+        //alert(tabContents[i].children[0].innerHTML);
+        if (colList.length > 0){
+            //保留设置前的class
+            var tempDisplay = tabContents[i].className;
+            //alert(tempDisplay);
+            //统一设置为active,否则会出现没有active class的元素不能够重新排版成功
+            tabContents[i].className = "tab-pane active";
+            var height = reSetColPosition(colList);
+            tabContents[i].style.height = height + "px";
+            tabContents[i].className = tempDisplay;
+        }
+    }
+}
+function reSetColPosition(colList) {
+    var posHeightArr = [0,0];
+    var colWidth = (document.documentElement.clientWidth - 40)/2 - 20;
+    var startHeight = 50 + document.getElementById("carousel-inner-img").offsetHeight + 20;
+    for (var i = 0; i < colList.length; i++){
+        var minIndex = getMinOrMaxIndex(posHeightArr,"min");
+        //alert("index="+minIndex+",posHeight="+posHeightArr[minIndex]);
+        //alert(colList[i].innerHTML);
+        colList[i].style.position = "absolute";
+        colList[i].style.width = (colWidth - 10) + "px";
+        colList[i].style.left = (30 + minIndex * colWidth)+"px";
+        colList[i].style.top = (startHeight + posHeightArr[minIndex])+"px";
+        posHeightArr[minIndex] += colList[i].offsetHeight;
+        //alert("index="+minIndex+",posHeight="+posHeightArr[minIndex]);
+    }
+    return posHeightArr[getMinOrMaxIndex(posHeightArr,"max")];
+}
+function getMinOrMaxIndex(posArr,type) {
+    var minIndex = 0;
+    var maxIndex = 0;
+    for (var i = 1; i < posArr.length;i++){
+        if (posArr[minIndex] > posArr[i]){
+            minIndex = i;
+        }
+        if (posArr[maxIndex] < posArr[i]){
+            maxIndex = i;
+        }
+    }
+    if (type == "min"){
+        return minIndex;
+    }else if (type == "max"){
+        return maxIndex;
+    }
+}

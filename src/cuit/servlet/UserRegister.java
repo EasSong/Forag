@@ -43,9 +43,9 @@ public class UserRegister extends HttpServlet {
 		String password = request.getParameter("password");
 		UserService userService = AppUtil.getUserService();
 		UserBean userBean = new UserBean();
-		userBean.setName(userName);
-		userBean.setEmail(userMail);
-		userBean.setPass(password);
+		userBean.setUtName(userName);
+		userBean.setUtMail(userMail);
+		userBean.setUtPass(password);
 		int stateCode = userService.registerUser(userBean);
 
 		response.setContentType("text/html;charset=utf-8");

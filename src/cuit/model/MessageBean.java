@@ -1,25 +1,25 @@
 package cuit.model;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 
 /**
  * Created by Esong on 2017/4/28.
  */
 public class MessageBean {
     private int mId;
-    private int uId;
-    private Timestamp mTime;
     private String mSource;
-    private String mTags;
-    private String mStore_uri;
     private String mTitle;
     private String mIntro;
-    private String mContext;
-    private String mPic;//这里的图片应该是二进制数据。这里暂时先用字符串读取
-    private int mLike_Count;
-    private int mCollect_Count;
-    private int mTransmit_Count;
-    private int mHavePic;
+    private String mPic;
+    private String mTags;
+    private String mAuthor;
+    private String mContent;
+    private Date mPublishTime;
+    private Date mCollectTime;
+    private int mLikeCount;
+    private int mDislikeCount;
+    private int mCollectCount;
+    private int mTransmitCount;
 
     public int getmId() {
         return mId;
@@ -27,22 +27,6 @@ public class MessageBean {
 
     public void setmId(int mId) {
         this.mId = mId;
-    }
-
-    public int getuId() {
-        return uId;
-    }
-
-    public void setuId(int uId) {
-        this.uId = uId;
-    }
-
-    public Timestamp getmTime() {
-        return mTime;
-    }
-
-    public void setmTime(Timestamp mTime) {
-        this.mTime = mTime;
     }
 
     public String getmSource() {
@@ -53,26 +37,6 @@ public class MessageBean {
         this.mSource = mSource;
     }
 
-    public void setmTags(String mTags) {
-        this.mTags = mTags;
-    }
-
-    public String getmTags() {
-        return mTags;
-    }
-
-    public String getmStore_uri() {
-        return mStore_uri;
-    }
-
-    public void setmStore_uri(String mStore_uri) {
-        this.mStore_uri = mStore_uri;
-    }
-
-    public String getmIntro() {
-        return mIntro;
-    }
-
     public String getmTitle() {
         return mTitle;
     }
@@ -81,16 +45,12 @@ public class MessageBean {
         this.mTitle = mTitle;
     }
 
+    public String getmIntro() {
+        return mIntro;
+    }
+
     public void setmIntro(String mIntro) {
         this.mIntro = mIntro;
-    }
-
-    public String getmContext() {
-        return mContext;
-    }
-
-    public void setmContext(String mContext) {
-        this.mContext = mContext;
     }
 
     public String getmPic() {
@@ -101,35 +61,75 @@ public class MessageBean {
         this.mPic = mPic;
     }
 
-    public int getmLike_Count() {
-        return mLike_Count;
+    public String getmTags() {
+        return mTags;
     }
 
-    public void setmLike_Count(int mLike_Count) {
-        this.mLike_Count = mLike_Count;
+    public void setmTags(String mTags) {
+        this.mTags = mTags;
     }
 
-    public int getmCollect_Count() {
-        return mCollect_Count;
+    public String getmAuthor() {
+        return mAuthor;
     }
 
-    public void setmCollect_Count(int mCollect_Count) {
-        this.mCollect_Count = mCollect_Count;
+    public void setmAuthor(String mAuthor) {
+        this.mAuthor = mAuthor;
     }
 
-    public int getmTransmit_Count() {
-        return mTransmit_Count;
+    public String getmContent() {
+        return mContent;
     }
 
-    public void setmTransmit_Count(int mTransmit_Count) {
-        this.mTransmit_Count = mTransmit_Count;
+    public void setmContent(String mContent) {
+        this.mContent = mContent;
     }
 
-    public int getmHavePic() {
-        return mHavePic;
+    public Date getmPublishTime() {
+        return mPublishTime;
     }
 
-    public void setmHavePic(int mHavePic) {
-        this.mHavePic = mHavePic;
+    public void setmPublishTime(Date mPublishTime) {
+        this.mPublishTime = mPublishTime;
+    }
+
+    public Date getmCollectTime() {
+        return mCollectTime;
+    }
+
+    public void setmCollectTime(Date mCollectTime) {
+        this.mCollectTime = mCollectTime;
+    }
+
+    public int getmLikeCount() {
+        return mLikeCount;
+    }
+
+    public void setmLikeCount(int mLikeCount) {
+        this.mLikeCount = mLikeCount;
+    }
+
+    public int getmDislikeCount() {
+        return mDislikeCount;
+    }
+
+    public void setmDislikeCount(int mDislikeCount) {
+        this.mDislikeCount = mDislikeCount;
+    }
+
+    public int getmCollectCount() {
+        return mCollectCount;
+    }
+
+    public void setmCollectCount(int mCollectCount) {
+        this.mCollectCount = mCollectCount;
+    }
+
+    public int getmTransmitCount() {
+        return mTransmitCount;
+    }
+
+    public void setmTransmitCount(int mTransmitCount) {
+        this.mTransmitCount = mTransmitCount;
     }
 }

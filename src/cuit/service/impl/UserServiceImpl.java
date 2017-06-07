@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserBean getUserDetail(int id) throws IOException {
+    public UserBean getUserDetail(int id) {
         return userDao.getUserDetail(id);
     }
 

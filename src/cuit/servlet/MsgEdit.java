@@ -1,5 +1,8 @@
 package cuit.servlet;
 
+import cuit.log.UserLog;
+import cuit.log.impl.UserLogImpl;
+import cuit.model.LogInfo;
 import cuit.service.MessageService;
 import cuit.util.AppUtil;
 import cuit.util.ConstantDeclare;
@@ -10,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Date;
 
 /**
  * Created by Esong on 2017/5/4.
@@ -27,6 +31,12 @@ public class MsgEdit extends HttpServlet {
                 response.getWriter().print("errorUpdateLikeCount");
             }else{
                 response.getWriter().print("successUpdateLikeCount");
+                UserLog userLog = new UserLogImpl();
+                String uId = request.getParameter("uId");
+                if (Integer.parseInt(uId) > -1){
+                    Date date = new Date(System.currentTimeMillis());
+                    userLog.writeUserLog(uId,new LogInfo(date.toString(),uId+" like msg "+mId ,uId+" like "+mId));
+                }
             }
         }
     }
