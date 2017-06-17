@@ -43,7 +43,7 @@ public class LoadArticle extends HttpServlet {
         //封装文章(Message)信息
         JSONObject jsonMSG = new JSONObject();
         jsonMSG.put("mId",messageBean.getmId());
-        jsonMSG.put("mTime",messageBean.getmPublishTime().toString().substring(0,messageBean.getmPublishTime().toString().length()-2));
+        jsonMSG.put("mTime",messageBean.getmPublishTime().toString());
         jsonMSG.put("mSource",messageBean.getmSource());
         jsonMSG.put("mTags",messageBean.getmTags());
         jsonMSG.put("mTitle",messageBean.getmTitle());
@@ -65,7 +65,7 @@ public class LoadArticle extends HttpServlet {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("cId",commentBean.getcId());
                 jsonObject.put("cParent_Id",commentBean.getcParent_Id());
-                jsonObject.put("cTime",commentBean.getcTime().toString().substring(0,commentBean.getcTime().toString().length()-2));
+                jsonObject.put("cTime",commentBean.getcTime().toString());
                 UserBean userBean1 = userService.getUserDetail(commentBean.getuId());
                 jsonObject.put("userName",userBean1.getUtName());
                 jsonObject.put("cRoot_Id",commentBean.getcRoot_Id());
@@ -110,7 +110,7 @@ public class LoadArticle extends HttpServlet {
             jsonData.put("userInfo",jsonObject);
             UserLog userLog = new UserLogImpl();
             Date date = new Date(System.currentTimeMillis());
-            LogInfo logInfo = new LogInfo(date.toString(),userBean.getUtId()+" browse msg "+mid ,userBean.getUtId()+" browse msg "+mid);
+            LogInfo logInfo = new LogInfo(date.toString(),"browse","browse msg",mid,messageBean.getmTags(),"null");
             userLog.writeUserLog(String.valueOf(userBean.getUtId()),logInfo);
         }
         System.out.println(jsonData.toString());

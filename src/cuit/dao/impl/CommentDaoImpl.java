@@ -31,13 +31,22 @@ public class CommentDaoImpl implements CommentDao {
         Session session = sessionFactory.getCurrentSession();
         session.beginTransaction();
         try {
-            session.save(commentBean);
-            session.getTransaction().commit();
+            Query query = session.createNativeQuery("insert into foragOwner.cmttable(cid,utid,mid,cparent_id,ctime,ctext,croot_id) values(foragOwner.CID_SEQ.NEXTVAL,?,?,?,?,?,?)");
+//			query.setParameter(1,"foragOwner.UTID_SEQ.NEXTVAL");
+            query.setParameter(1,commentBean.getuId());
+            query.setParameter(2,commentBean.getmId());
+            query.setParameter(3,commentBean.getcParent_Id());
+            query.setParameter(4,commentBean.getcTime());
+            query.setParameter(5,commentBean.getcCommentText());
+            query.setParameter(6,commentBean.getcRoot_Id());
+            query.executeUpdate();
             state = ConstantDeclare.SUCCESS_COMMENT_INSERT;
         }catch (HibernateException e){
             session.getTransaction().rollback();
             state = ConstantDeclare.ERROR_COMMENT_INSERT;
             e.printStackTrace();
+        } finally {
+            session.getTransaction().commit();
         }
         return state;
     }

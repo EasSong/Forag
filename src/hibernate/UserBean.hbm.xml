@@ -2,7 +2,7 @@
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class name="cuit.model.UserBean" table="foragOwner.usertab">
+    <class name="cuit.model.UserBean" table="foragOwner.usertable">
         <id name="utId">
             <column name="utId"/>
         </id>
@@ -37,7 +37,10 @@
             <column name="utSkill"/>
         </property>
         <property name="uPic">
-            <column name="uPic"/>
+            <column name="utPic"/>
+        </property>
+        <property name="utInterest">
+            <column name="UTINTEREST"/>
         </property>
     </class>
 </hibernate-mapping>

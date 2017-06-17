@@ -26,6 +26,7 @@ public class MsgEdit extends HttpServlet {
         MessageService messageService = AppUtil.getMessageService();
         if (type.equals("like")){
             String mId = request.getParameter("mId");
+            String mTags = request.getParameter("mTags");
             int stateCode = messageService.updateLikeCountById(Integer.parseInt(mId));
             if (stateCode == ConstantDeclare.ERROR_UPDATE_LIKE){
                 response.getWriter().print("errorUpdateLikeCount");
@@ -35,7 +36,7 @@ public class MsgEdit extends HttpServlet {
                 String uId = request.getParameter("uId");
                 if (Integer.parseInt(uId) > -1){
                     Date date = new Date(System.currentTimeMillis());
-                    userLog.writeUserLog(uId,new LogInfo(date.toString(),uId+" like msg "+mId ,uId+" like "+mId));
+                    userLog.writeUserLog(uId,new LogInfo(date.toString(),"like","like msg",mId,mTags,"null"));
                 }
             }
         }

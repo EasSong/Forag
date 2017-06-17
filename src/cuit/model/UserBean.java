@@ -15,6 +15,7 @@ public class UserBean {
 	private String utIntro;
 	private String utSkill;
 	private String uPic;
+	private String utInterest;
 
 	public int getUtId() {
 		return utId;
@@ -110,5 +111,13 @@ public class UserBean {
 
 	public void setuPic(String uPic) {
 		this.uPic = uPic;
+	}
+
+	public String getUtInterest() {
+		return utInterest;
+	}
+
+	public void setUtInterest(String utInterest) {
+		this.utInterest = utInterest;
 	}
 }

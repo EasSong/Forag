@@ -2,6 +2,7 @@ package cuit.util;
 
 import cuit.service.CommentService;
 import cuit.service.MessageService;
+import cuit.service.TagService;
 import cuit.service.UserService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -14,6 +15,7 @@ public class AppUtil {
     private static UserService userService = null;
     private static MessageService messageService = null;
     private static CommentService commentService = null;
+    private static TagService tagService = null;
     public static ApplicationContext getAppContext() {
         if (applicationContext == null){
             applicationContext = new ClassPathXmlApplicationContext("spring/config/BeanLocation.xml");
@@ -39,5 +41,11 @@ public class AppUtil {
             commentService = (CommentService)getAppContext().getBean("commentService");
         }
         return commentService;
+    }
+    public static TagService getTagService(){
+        if (tagService == null){
+            tagService = (TagService)getAppContext().getBean("tagService");
+        }
+        return tagService;
     }
 }

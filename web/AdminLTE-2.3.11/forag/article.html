@@ -28,6 +28,7 @@
   <script src="js/forag_util.js"></script>
 </head>
 <script>
+    var objName = "null";
     var cParent_id = -1;//默认为-1，即评论的是文章，而不是回复的评论，否则为评论的ID
     var cRoot_id = -1;//默认为-1，即评论的是文章，而不是回复的评论，否则为根评论的ID
     var login_flag = -1;//默认为-1，即未登录，否则为用户ID
@@ -42,6 +43,7 @@
     var commentNodeDataArray;//子级评论数据
     var commentNodeCount;//子级评论总数
     var commentRootCount;//根评论总数
+    var msgTags;//保存文章标签
     var xmlHttp;
     function LoadingMsgDetail() {
         if (location.search == ""){
@@ -66,6 +68,7 @@
                 var msg = jsonData.MSG;
                 var state = jsonData.state;
                 var userInfo = jsonData.userInfo;
+                msgTags = JSON.stringify(msg.mTags) ;
                 commentNodeCount = jsonData.nodeCommentCount;
                 commentRootDataArray = jsonData.commentRootData;
                 commentNodeDataArray = jsonData.commentNodeData;
@@ -85,13 +88,17 @@
                     topUserInforUl.display = "none";
                 }
                 document.getElementById("over-lay").style.display = "none";
-                document.getElementById("art-msg-head").innerHTML=msg.mTitle;
+                //document.getElementById("art-msg-head").innerHTML=msg.mTitle;
                 document.getElementById("art-msg-context").innerHTML = msg.mContext;
                 document.getElementById("like-count").innerHTML = msg.mLike_count;
                 document.getElementById("comment-count").innerHTML = commentRootCount;
                 setCommentFunc();
+                setTagsStyle();
             }
         }
+    }
+    function setTagsStyle() {
+
     }
     //相应后台检查登录
     function checkLogin() {
@@ -148,7 +155,7 @@
         xmlHttp.open("POST",url,true);
         xmlHttp.onreadystatechange=submitCommentCallback;
         xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-        xmlHttp.send("cParent_id="+cParent_id+"&context="+textValue+"&mId="+msg_id+"&cRoot_Id="+cRoot_id);
+        xmlHttp.send("cParent_id="+cParent_id+"&context="+textValue+"&mId="+msg_id+"&cRoot_Id="+cRoot_id+"&mTags="+msgTags+"&objName="+objName);
     }
     function submitCommentCallback() {
         //4代表完成
@@ -217,7 +224,7 @@
                         +"<div class='box box-solid box-default'>"
                     for (var j = innerCommentFlag; j < parseInt(commentNodeCount); j++){
                         if (commentNodeDataArray[j].cRoot_Id == commentRootDataArray[i].cId){
-                            tempId = commentNodeDataArray[j].cId+","+commentNodeDataArray[j].cParent_Id+","+commentNodeDataArray[j].cRoot_Id;
+                            tempId = commentNodeDataArray[j].cId+","+commentNodeDataArray[j].cParent_Id+","+commentNodeDataArray[j].cRoot_Id+","+commentNodeDataArray[j].comment_username;
                             tempHTML += "<div class='box-footer'>"
                                 + "<img class='img-circle img-sm' src='../dist/img/user3-128x128.jpg' alt='User Image'>"
                                 + "<div class='comment-text'> <span class='username'>"
@@ -254,6 +261,7 @@
             +"</div>";
         }
         boxComments.innerHTML = tempHTML;
+        setSpanTagsStyle("item-tag");
     }
     function setNowPageParameters(obj) {
         var rootUlNode = obj.parentNode.parentNode.getElementsByTagName("li");
@@ -298,6 +306,10 @@
     function closeCommentInput() {
         gLinkComment.style.display = "inline";
         gInputComment.style.display = "none";
+        //重置评论数据为默认值
+        cParent_id = -1;
+        cRoot_id = -1;
+        objName = "null";
         var comText = gInputComment.getElementsByTagName("input")[0];
         var comHidden = gInputComment.getElementsByTagName("input")[1];
         if (comText.value == ""){
@@ -311,6 +323,7 @@
         var cId = arrayIds[0];
         var cRootId = arrayIds[2];
         cParent_id = cId;
+        objName = arrayIds[3];
         if (cRootId == 0 || cRootId == -1){
             cRootId = cId;
         }
@@ -328,7 +341,7 @@
         xmlHttp.open("POST",url,true);
         xmlHttp.onreadystatechange=clickFaOUpCallback;
         xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-        xmlHttp.send("type=like&mId="+msg_id+"&uId="+login_flag);
+        xmlHttp.send("type=like&mId="+msg_id+"&uId="+login_flag+"&mTags="+msgTags);
     }
     function clickFaOUpCallback() {
         //4代表完成
@@ -346,6 +359,22 @@
                     alert("点赞失败！");
                 }
             }
+        }
+    }
+    var labelColor = ["label-success","label-info","label-primary","label-warning","label-danger"];
+    function setSpanTagsStyle(tagClsName) {
+        var tag_items = document.getElementsByClassName(tagClsName);
+        var index = 0;
+        for (var i = 0; i < tag_items.length; i++){
+            var tagListTags = (tag_items[i].children)[0].innerHTML;
+            var tagNames = (JSON.parse(tagListTags)).tag;
+            var tmp = "";
+            for (var name in tagNames){
+                //alert(name + ":"+tagNames[name]);
+                tmp += "<span class='label "+labelColor[index++%5]+"'>"+name
+                    +"</span>";
+            }
+            tag_items[i].innerHTML = tmp;
         }
     }
 </script>
@@ -505,20 +534,9 @@
     <div class="row" style="margin-top:10px;">
       <div class="col-md-9" id="article_detail">
         <div class="box box-widget">
-          <div class="box-header with-border">
-            <div class="">
-
-            </div>
-            <div class="user-block">
-              <img class="img-circle" src="../dist/img/user1-128x128.jpg" alt="User Image">
-              <span class="username"><a href="#">Jonathan Burke Jr.</a></span>
-              <span class="description">Shared publicly - 7:30 PM Today</span>
-            </div>
-            <!-- /.user-block --> 
-          </div>
           <!-- /.box-header -->
           <div class="box-body"> <!--<img class="img-responsive pad" src="../dist/img/photo2.png" alt="Photo">-->
-            <h2 style="text-align: center" id="art-msg-head">I took this photo this morning. What do you guys think</h2><br/><br/>
+            <!--<h2 style="text-align: center" id="art-msg-head">I took this photo this morning. What do you guys think</h2><br/><br/>-->
             <p id="art-msg-context">I took this photo this morning. What do you guys think?</p>
             <div class="overlay" id="over-lay"><i class="fa fa-refresh fa-spin"></i></div>
             <button type="button" class="btn btn-default btn-xs"><i class="fa fa-share"></i> Share</button>
@@ -608,59 +626,6 @@
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
           </div>
           <!-- /.box-body --> 
-        </div>
-        <div class="box box-danger">
-          <div class="box-header with-border">
-            <h3 class="box-title" style="font-size:14px;">相关文章</h3>
-            <div class="box-tools">
-              <div class="input-group input-group-sm" style="width: 150px;">
-                <input name="table_search" class="form-control pull-right" placeholder="Search" type="text">
-                <div class="input-group-btn">
-                  <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- /.box-header -->
-          <div class="box-body table-responsive no-padding">
-            <table class="table table-hover">
-              <tr>
-                <td>Bacon ipsum dolor sit amet salami </td>
-                <td>11-7-2014</td>
-              </tr>
-              <tr>
-                <td>Bacon ipsum dolor sit amet salami </td>
-                <td>11-7-2014</td>
-              </tr>
-              <tr>
-                <td>Bacon ipsum dolor sit amet salami </td>
-                <td>11-7-2014</td>
-              </tr>
-              <tr>
-                <td>Bacon ipsum dolor sit amet salami</td>
-                <td>11-7-2014</td>
-              </tr>
-              <tr>
-                <td>Bacon ipsum dolor sit amet salami </td>
-                <td>11-7-2014</td>
-              </tr>
-              <tr>
-                <td>Bacon ipsum dolor sit amet salami</td>
-                <td>11-7-2014</td>
-              </tr>
-                </tbody>
-            </table>
-          </div>
-          <!-- /.box-body -->
-          <div class="box-footer clearfix">
-            <ul class="pagination pagination-sm no-margin pull-right">
-              <li><a href="#">«</a></li>
-              <li><a href="#">1</a></li>
-              <li><a href="#">2</a></li>
-              <li><a href="#">3</a></li>
-              <li><a href="#">»</a></li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

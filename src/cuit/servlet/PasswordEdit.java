@@ -77,7 +77,7 @@ public class PasswordEdit extends HttpServlet {
 			out.println("<h2>密码修改成功</h2><br><h3>正在跳转。。。</h3>");
 			out.println("<br><span>两秒后跳转登录页面<span>");
 			request.setAttribute("userShowInfor", null);
-			response.setHeader("refresh","2;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
+			response.setHeader("refresh","2;url=/AdminLTE-2.3.11/forag/login.jsp");
 		}
 		
 		out.println("</body></html>");

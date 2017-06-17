@@ -13,15 +13,18 @@ import net.sf.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Esong on 2017/5/26.
  * 保存用户操作的日志
  */
-public class UserLogImpl implements UserLog{
+public class UserLogImpl implements UserLog {
     @Override
     public int writeUserLog(String uId, LogInfo logInfo) {
         Date date = new Date();
@@ -30,94 +33,121 @@ public class UserLogImpl implements UserLog{
 
         UserService userService = AppUtil.getUserService();
         UserBean userBean = new UserBean();
-        try{
+        try {
             userBean = userService.getUserDetail(Integer.parseInt(uId));
-        }catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             userService = null;
         }
         //日志文件路径
         String userEmail = userBean.getUtMail();
-        String logFileName = userEmail.split("@")[0]+"-behavior.log";
-        if (!LogRandomFileUtil.createLogFile(logFileName)){
+        String logFileName = userEmail.split("@")[0] + "-behavior.log";
+        if (!LogRandomFileUtil.createLogFile(logFileName)) {
             System.out.println("The file is exist!");
         }
         //日志信息
-        String logType = logInfo.getLogType();
-        String logContent = logInfo.getLogContent();
-        int codeState = LogRandomFileUtil.writeUserLog(logFileName,timeStr + "," +logType + ","+logContent + "\r\n");
+        logInfo.setDate(timeStr);
+        int codeState = LogRandomFileUtil.writeUserLog(logFileName, logInfo.toString());
 
         return codeState;
     }
 
     @Override
-    public JSONObject readUserLog(String uId, String date, int maxLength) {
+    public List<String> readUserLog(String uId) {
         UserService userService = AppUtil.getUserService();
         UserBean userBean = new UserBean();
-        try{
+        try {
             userBean = userService.getUserDetail(Integer.parseInt(uId));
-        }catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             e.printStackTrace();
-        }  finally {
+        } finally {
             userService = null;
         }
         //日志文件路径
-        String userName = userBean.getUtName();
-        String logFileName = date+"/"+userName+"-behavior.log";
+        String userEmail = userBean.getUtMail();
+        String logFileName = userEmail.split("@")[0] + "-behavior.log";
         //读取日志信息
-        ArrayList<String> listLogStr = LogRandomFileUtil.readUserLog(logFileName);
-        JSONObject jsonLogInfor = new JSONObject();
-        //分类封装日志
-        JSONArray jsonCommentLog = new JSONArray();
-        JSONArray jsonBrowenLog = new JSONArray();
-        JSONArray jsonLikeLog = new JSONArray();
-        for (String logStr:listLogStr){
-            String[] arrLog = logStr.split(",");
-            String[] logType = arrLog[1].split(" ");
-            if (logType[1].equals("like")){
-                if (jsonLikeLog.size() > maxLength){
-                    continue;
+        //List<String> listLogStr = LogRandomFileUtil.readUserLog(logFileName);
+
+        return LogRandomFileUtil.readUserLog(logFileName);
+    }
+
+    public JSONArray readUserLogForTimeLine(String uId, int offsetLength, int maxLength) {
+        List<String> listLog = readUserLog(uId);
+        listLog.remove(0);//移除第一条标题内容
+        JSONArray logJsonArr = new JSONArray();//封装日志信息
+        int count = 0;//获取日志数量计数
+        int offset = 0;//偏移量计数
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        Date nowDate = new Date(System.currentTimeMillis());
+        MessageService messageService = AppUtil.getMessageService();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", "date");
+        jsonObject.put("date", dateFormat.format(nowDate));
+        logJsonArr.add(jsonObject);
+        for (int i = listLog.size() - 1; i >= 0; i--) {
+            if (offset++ < offsetLength) {
+                continue;
+            }
+            if (count++ > maxLength) {
+                break;
+            }
+            String[] logItems = listLog.get(i).split("-1b1-");
+            String logDate = null;
+            Date date = new Date();
+            try {
+                date = dateTimeFormat.parse(logItems[0]);
+                logDate = dateFormat.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            String logTime = "";
+            if (!logDate.equals(dateFormat.format(nowDate))) {
+                try {
+                    logTime = daysBetween(dateFormat.parse(logDate), nowDate) + "days ago";
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-                JSONObject jsonObjLike = new JSONObject();
-                jsonObjLike.put("time",arrLog[0]);
-                String targetId = logType[logType.length-1];
-                MessageService messageService = AppUtil.getMessageService();
-                MessageBean messageBean = messageService.selectById(Integer.parseInt(targetId));
-                jsonObjLike.put("msg",messageBean.getmIntro());
-                jsonLikeLog.add(jsonObjLike);
-            }else if (logType[1].equals("comment")){
-                if (jsonCommentLog.size() > maxLength){
-                    continue;
-                }
-                JSONObject jsonObjComment = new JSONObject();
-                jsonObjComment.put("time",arrLog[0]);
-                jsonObjComment.put("type","Comment "+arrLog[2]);
-                jsonObjComment.put("context",arrLog[2]);
-                String targetId = logType[logType.length-1];
-                MessageService messageService = AppUtil.getMessageService();
-                MessageBean messageBean = messageService.selectById(Integer.parseInt(targetId));
-                jsonObjComment.put("msg",messageBean.getmIntro());
-                jsonLikeLog.add(jsonObjComment);
-            }else if (logType[1].equals("browse")){
-                if (jsonBrowenLog.size() > maxLength){
-                    continue;
-                }
-                JSONObject jsonObjBrowse = new JSONObject();
-                jsonObjBrowse.put("time",arrLog[0]);
-                MessageService messageService = AppUtil.getMessageService();
-                String targetId = logType[logType.length-1];
-                MessageBean messageBean = messageService.selectById(Integer.parseInt(targetId));
-                jsonObjBrowse.put("msg",messageBean.getmIntro());
-                jsonBrowenLog.add(jsonObjBrowse);
-            }else{
-                System.out.println("错误的日志类型。");
+                JSONObject jsonObject1 = new JSONObject();
+                jsonObject1.put("type", "date");
+                jsonObject1.put("date", logDate);
+                logJsonArr.add(jsonObject1);
+            } else {
+                logTime = timeFormat.format(date);
+            }
+            if (logItems[1].equals("browse") || logItems[1].equals("comment") || logItems[1].equals("like")) {
+                JSONObject logItem = new JSONObject();
+                logItem.put("type", logItems[1]);
+                logItem.put("time", logTime);
+                logItem.put("context", logItems[2]);
+                logItem.put("objName", logItems[3]);
+                logItem.put("mId",logItems[4]);
+                MessageBean messageBean = messageService.selectById(Integer.parseInt(logItems[4]));
+                logItem.put("title", messageBean.getmTitle());
+                logJsonArr.add(logItem);
+            } else {
+                System.err.println("日志类型出错: " + logItems[1]);
             }
         }
-        jsonLogInfor.put("likeLog",jsonLikeLog);
-        jsonLogInfor.put("commentLog",jsonCommentLog);
-        jsonLogInfor.put("browseLog",jsonBrowenLog);
 
-        return jsonLogInfor;
+        return logJsonArr;
+    }
+
+    //计算两个日期相差多少天
+    private String daysBetween(Date smdate, Date bdate) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        smdate = sdf.parse(sdf.format(smdate));
+        bdate = sdf.parse(sdf.format(bdate));
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(smdate);
+        long time1 = cal.getTimeInMillis();
+        cal.setTime(bdate);
+        long time2 = cal.getTimeInMillis();
+        long between_days = (time2 - time1) / (1000 * 3600 * 24);
+
+        return String.valueOf(between_days);
     }
 }

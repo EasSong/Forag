@@ -156,7 +156,7 @@
                 var hotTags = jsonObj.tags;
                 hotTagName = jsonObj.tagName;
                 var nowHotTags = jsonObj.nowHotTags;
-                arrTags = hotTagName;
+                arrTags = nowHotTags;
                 var datas = jsonObj.msgData;
                 var nowTagNodes = document.getElementById("all-tags-a-span");
                 nowTagNodes.innerHTML = "";
@@ -165,19 +165,19 @@
                 var topNavLis = document.getElementById("top-tag-nav-ul");
                 var beforeIndex = -1;
                 //初始化选项卡导航与当前选择标签
-                for (var i = 0; i < hotTagName.length; i++){
+                for (var i = 0; i < nowHotTags.length; i++){
                     var index = parseInt(Math.random()*5);
                     while (index == beforeIndex){
                         index = parseInt(Math.random()*5);
                     }
                     beforeIndex = index;
                     tempBtnTagHtml += "<button type='button' class='btn "+btnColors[index]+" margin-r-5' style='padding: 0 2px;margin-top: 5px' onclick='deleteTag(this)'>"
-                        +hotTagName[i]+"</button>";
+                        +nowHotTags[i]+"</button>";
 //                    topNavLis[i].getElementsByTagName("a")[0].innerHTML = hotTagName[i];
                     if (i == 0){
-                        tempTopTagHtml += "<li class='active'><a href='#topic"+i+"' data-toggle='tab' aria-expanded='true' onclick='alert('1231')'>"+hotTagName[i]+"</a></li>";
+                        tempTopTagHtml += "<li class='active'><a href='#topic"+i+"' data-toggle='tab' aria-expanded='true'>"+nowHotTags[i]+"</a></li>";
                     }else {
-                        tempTopTagHtml += "<li class=''><a href='#topic"+i+"' data-toggle='tab' aria-expanded='true' onclick='alert('1231')'>"+hotTagName[i]+"</a></li>";
+                        tempTopTagHtml += "<li class=''><a href='#topic"+i+"' data-toggle='tab' aria-expanded='true'>"+nowHotTags[i]+"</a></li>";
                     }
                 }
                 var dropTagSelector = document.getElementById("dropdown-tags-selector");
@@ -187,24 +187,24 @@
                 //初始化热门标签
                 var selectTagsASpan = document.getElementById("select-tags-a-span");
                 tempBtnTagHtml = "";
-                if (nowHotTags.length <= 0){
+                if (hotTagName.length <= 0){
                     tempBtnTagHtml = "当前没有热门标签。";
                 }
-                for (var i = 0; i < nowHotTags.length; i++){
+                for (var i = 0; i < hotTagName.length; i++){
                     var index = parseInt(Math.random()*5);
                     while (index == beforeIndex){
                         index = parseInt(Math.random()*5);
                     }
                     beforeIndex = index;
                     tempBtnTagHtml += "<button type='button' class='btn "+btnColors[index]+" margin-r-5' style='padding: 0 2px;margin-top: 5px' onclick='addTagToNowTagList(this)'>"
-                        +nowHotTags[i]+"</button>";
+                        +hotTagName[i]+"</button>";
                 }
 //                alert((document.body.scrollWidth - 40)/2);
                 selectTagsASpan.innerHTML = tempBtnTagHtml;
                 //获取当前所有卡片页
                 var tabContents = document.getElementById("tab-content-id");
                 var tempTabContentHtml = "";
-                for (var m = 0; m < hotTagName.length; m++) {
+                for (var m = 0; m < nowHotTags.length; m++) {
                     if (m >= datas.length){
                         break;
                     }
@@ -214,14 +214,13 @@
                     }
                     tempTabContentHtml += "<div class='tab-pane"+activeFlag+"' id='topic"+m+"'>"
                                          +"<div class='container-fluid'>";
-
-                    if (hotTags[m] == -1){
+                    var msgCount = datas[m].count;
+                    if (msgCount == 0){
                         tempTabContentHtml += "这个标签下没有文章可以推荐。";
                         tempTabContentHtml += "</div></div>";
                         continue;
                     }
                     var data = datas[m].data;
-                    var msgCount = datas[m].count;
                     var temp = "";
                     for (var i = 0; i < msgCount; i++) {
                         temp += "<div class='col-md-6'>"
@@ -231,11 +230,12 @@
                             + "<h5 class='box-title' style='font-size:14px;'><a class='black_link_color' href='article.html?mId=" + data[i].mId + "'>" + data[i].mTitle + "</a></h5>"
                             + "</div>"
                             + "<div class='box-body'>";
-                        var t = "style='width:100%'"
-                        if (data[i].mHavePic == 1 || i == 0 || i == 4) {
+                        var t = "style='width:100%'";
+                        //alert(data[i].mHavePic)
+                        if (data[i].mHavePic != "" && data[i].mHavePic != null && data[i].mHavePic != undefined) {
                             temp += "<div class='col-md-6'> " +
                                 <!--pic url->data[i].mPicUri -->
-                                "<img src='images/067d87581b5b6d78da66d4a98f0b030c.jpg' class='img-responsive'/> </div>";
+                                "<img src='"+data[i].mPicUri+"' class='img-responsive'/> </div>";
                             t = "class='col-md-6'";
                         }
                         temp += "<div " + t + ">"
@@ -277,15 +277,6 @@
             }
         }
     }
-    //增加数组的删除功能
-    Array.prototype.removeByValue = function(val) {
-        for(var i=0; i<this.length; i++) {
-            if(this[i] == val) {
-                this.splice(i, 1);
-                break;
-            }
-        }
-    }
     //保存一下上次操作的数据，做一次撤销操作用
     var rollbackTagsList = "";
     function deleteTag(obj) {
@@ -300,6 +291,10 @@
     function addTagToNowTagList(obj) {
         if (arrTags.length >= 8){
             alert("最多存在8个标签");
+            return;
+        }
+        if (arrTags.contains(obj.innerHTML)){
+            alert("不能重复添加");
             return;
         }
         var parentPNode = document.getElementById("all-tags-a-span");
@@ -322,8 +317,35 @@
         }
     }
     function submitChangeTags() {
-        alert(arrTags);
+        //alert(arrTags);
         LoadMSG("type=hot&ChangeState=changed&listTags="+arrTags);
+    }
+    function searchTagListByLikeName() {
+        var tagName = document.getElementById("input-tag-name").value;
+        $.ajax({
+            type:"POST",
+            url:"/TagEdit",
+            dataType:"json",
+            data:"type=search&tagName="+tagName,
+            success:function (tagList) {
+                setHotTag(tagList);
+            }
+        });
+    }
+    var labelColor = ["label-success","label-info","label-primary","label-warning","label-danger"];
+    function setHotTag(data) {
+        var tempHtml = "";
+        var hotTagList = document.getElementById("select-tags-a-span");
+        if (data.length <= 0){
+            hotTagList.innerHTML = "没有这个标签";
+            return;
+        }
+        var count = 0;
+        for (var i = 0; i < data.length; i++) {
+            tempHtml += "<button type='button' class='btn " + labelColor[count++ % labelColor.length] + "' style='padding: 0 2px;margin-right: 5px' onclick='addTagToNowTagList(this)'>"
+                + data[i] + "</button>";
+        }
+        hotTagList.innerHTML = tempHtml;
     }
 </script>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
@@ -558,9 +580,9 @@
                         <i class="fa fa-pencil margin-r-5"></i>Change Tags
                       </h4>
                       <div class="input-group pull-right" style="width: 40%">
-                        <input name="message" placeholder="Type Message ..." class="form-control" type="text">
+                        <input name="message" placeholder="Type Message ..." class="form-control" type="text" id="input-tag-name">
                         <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-fw fa-search"></i></button>
+                        <button type="button" class="btn btn-primary btn-flat" onclick="searchTagListByLikeName()"><i class="fa fa-fw fa-search"></i></button>
                       </span>
                       </div>
                     </div>

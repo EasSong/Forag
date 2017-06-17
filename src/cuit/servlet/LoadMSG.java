@@ -47,11 +47,13 @@ public class LoadMSG extends HttpServlet {
             }
             else{
                 int count = 0;
-                for (String temp:hotTags){
-                    nowTags.add(temp);
-                    count++;
-                    if (count>=6){
-                        break;
+                if (hotTags != null && hotTags.size() != 0) {
+                    for (String temp : hotTags) {
+                        nowTags.add(temp);
+                        count++;
+                        if (count >= 6) {
+                            break;
+                        }
                     }
                 }
             }

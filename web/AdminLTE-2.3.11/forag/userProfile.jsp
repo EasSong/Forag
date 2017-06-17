@@ -36,6 +36,8 @@
   <script src="js/html5shiv.js"></script>
   <script src="js/respond.min.js"></script>
   <![endif]-->
+  <!-- my js-->
+  <script src="js/forag_util.js"></script>
 </head>
 <script>
     var xmlHttp;
@@ -64,12 +66,14 @@
                 var xmlResult = xmlHttp.responseText;
                 var temp = eval('('+xmlResult+')');
                 if (temp.state == "success"){
-                    location.href="/AdminLTE-2.3.11/forag/login.jsp";
+                    location.href="/AdminLTE-2.3.11/forag/index.html";
                 }
                 else if(temp.state == "notLogin"){
-                    location.href="/AdminLTE-2.3.11/forag/login.jsp";
+                    location.href="/AdminLTE-2.3.11/forag/index.html";
                 }else if (temp.state == "isLogin"){
-
+                    setUserDetailInfo(temp.userInfor);
+                    getHotTags();
+                    getUserTimeLine();
                 }
             }
         }
@@ -95,6 +99,172 @@
         //POST方法必须设置报文Header
         xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
         xmlHttp.send("type=checkLogin");
+    }
+    var labelColor = ["label-success","label-info","label-primary","label-warning","label-danger"];
+    function setHotTag(data) {
+        var tempHtml = "";
+        var hotTagList = document.getElementById("hot-tag-list");
+        if (data.length <= 0){
+            hotTagList.innerHTML = "没有这个标签";
+            return;
+        }
+        var count = 0;
+        for (var i = 0; i < data.length; i++) {
+            tempHtml += "<button type='button' class='btn " + labelColor[count++ % labelColor.length] + "' style='padding: 0 2px;margin-right: 5px' onclick='addTagToNowTagList(this)'>"
+                + data[i] + "</button>";
+        }
+        hotTagList.innerHTML = tempHtml;
+    }
+    function getHotTags() {
+        $.ajax({
+            type:"POST",
+            url:"/ShowInforEdit",
+            dataType:"json",
+            data:"type=hotTag",
+            success:function (data) {
+                setHotTag(data);
+            }
+        });
+    }
+    var arrTags = new Array();
+    var userName = "";
+    function setUserDetailInfo(userInfo) {
+        var userSkills = (userInfo.uSkill).split(",");
+        var userInterest = userInfo.uInterest;
+        userName = userInfo.uName;
+        var skillList = document.getElementById("user-skill-list");
+        var interestList = document.getElementById("interest-tag-list");
+        var tempHtml = "";
+        var count = 0;
+        for (var i = 0; i < userSkills.length; i++){
+            if (userSkills[i] == ""){
+                continue;
+            }
+            tempHtml += "<span class='label "+labelColor[count++%labelColor.length]+"' style='margin-right: 5px'>"+userSkills[i]+"</span>";
+        }
+        skillList.innerHTML = tempHtml;
+        tempHtml = "";
+        for (var i = 0; i < interestList.length; i++){
+            tempHtml += "<button type='button' class='btn "+labelColor[count++%labelColor.length]+"' style='padding: 0 2px;margin-right: 5px' onclick='deleteTag(this)'>"
+                +userInterest[i]+"</button>";
+            arrTags.push(userInterest[i]);
+        }
+        interestList.innerHTML = tempHtml;
+    }
+    function deleteTag(obj) {
+        if (arrTags.length <= 1){
+            alert("至少保留1个标签");
+            return;
+        }
+        var parentElement = obj.parentElement;
+        parentElement.removeChild(obj);
+        arrTags.removeByValue(obj.innerHTML);
+    }
+    function addTagToNowTagList(obj) {
+        if (arrTags.contains(obj.innerHTML)){
+            alert("不能重复添加");
+            return;
+        }
+        var parentPNode = document.getElementById("interest-tag-list");
+        var tempHtml = "<button type='button' class='"+obj.className+"' style='padding: 0 2px;margin-right: 5px' onclick='deleteTag(this)'>"
+            +obj.innerHTML+"</button>";
+        parentPNode.innerHTML += tempHtml;
+        arrTags.push(obj.innerHTML);
+    }
+    function searchTagListByLikeName() {
+        var tagName = document.getElementById("input-tag-name").value;
+        $.ajax({
+            type:"POST",
+            url:"/TagEdit",
+            dataType:"json",
+            data:"type=search&tagName="+tagName,
+            success:function (tagList) {
+                setHotTag(tagList);
+            }
+        });
+    }
+    function getUserTimeLine() {
+        $.ajax({
+            type:"POST",
+            url:"/UserTimeLine",
+            dataType:"json",
+            success:function (logInfo) {
+                setTimeLine(logInfo);
+            }
+        });
+    }
+    function setTimeLine(logInfo) {
+        var timeLineTemp = "";
+        var timeLineUl = document.getElementById("time-line-ul-id");
+        for (var i = 0; i < logInfo.length; i++){
+            var type = logInfo[i].type;
+            if (type == "date"){
+                timeLineTemp += setTimeLineDate(logInfo[i]);
+            } else if (type == "browse"){
+                timeLineTemp += setTimeLineBrowse(logInfo[i]);
+            } else if (type == "comment"){
+                timeLineTemp += setTimeLineComment(logInfo[i]);
+            } else if (type == "like"){
+                timeLineTemp += setTimeLineLike(logInfo[i]);
+            }
+        }
+        timeLineUl.innerHTML = timeLineTemp;
+
+    }
+    var bgColor = ["bg-red","bg-yellow","bg-aqua","bg-blue","bg-light-blue","bg-green","bg-navy",
+        "bg-teal","bg-olive","bg-lime","bg-orange","bg-fuchsia","bg-purple","bg-maroon","bg-black"];
+    var dateLiCount = 0;
+    function setTimeLineDate(date) {
+        return "<li class='time-label'>"
+            +"<span class='"+bgColor[dateLiCount++%bgColor.length]+"'>"
+            +date.date
+        +"</span>"
+        +"</li>";
+    }
+    function setTimeLineBrowse(browse) {
+        return "<li>"
+            +"<i class='fa fa-bookmark bg-blue'></i>"
+        +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
+        +"<span class='time'><i class='fa fa-clock-o'></i>"+browse.time+"</span>"
+        +"<h3 class='timeline-header'><a href='#'>"+((browse.objName==null|| browse.objName==userName)?'You':browse.objName)+"</a> sent a message</h3>"
+        +"<div class='timeline-body'>The message's title is: "
+            +browse.title
+        +"</div>"
+        +"<div class='timeline-footer'>"
+            +"<a href='article.html?mId="+browse.mId+"' class='btn btn-primary btn-flat btn-xs'>View message</a>"
+        +"</div>"
+        +"</div>"
+        +"</li>";
+    }
+    function setTimeLineLike(like) {
+        return "<li>"
+        +"<i class='fa fa-thumbs-o-up bg-aqua'></i>"
+        +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
+        +"<span class='time'><i class='fa fa-clock-o'></i>"+like.time+"</span>"
+        +"<h3 class='timeline-header'><a href='#'>"+((like.objName==null|| like.objName==userName)?'You':like.objName)+"</a> think a message is good</h3>"
+        +"<div class='timeline-body'>The message's title is: "
+        +like.title
+        +"</div>"
+        +"<div class='timeline-footer'>"
+        +"<a href='article.html?mId="+like.mId+"' class='btn bg-aqua btn-flat btn-xs'>View message</a>"
+        +"</div>"
+        +"</div>"
+        +"</li>";
+    }
+    function setTimeLineComment(comment) {
+        return "<li>"
+        +"<i class='fa fa-comments bg-yellow'></i>"
+        +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
+        +"<span class='time'><i class='fa fa-clock-o'></i>"+comment.time+"</span>"
+        +"<h3 class='timeline-header'><a href='#'>You</a> comment "+((comment.objName==null)?'a message':((comment.objName==userName)?'yourself comment':comment.objName+'\'s comment'))+"</h3>"
+        +"<div class='timeline-body'>"
+        +comment.context
+        +"</div>"
+        +"<div class='timeline-footer'>"
+        +"<a href='article.html?mId="+comment.mId+"' class='btn btn-warning btn-flat btn-xs'>View message</a>"
+        +"</div>"
+        +"</div>"
+        +"</li>";
     }
 </script>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
@@ -200,11 +370,11 @@
               <!-- The user image in the navbar--> 
               <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image"> 
               <!-- hidden-xs hides the username on small devices so only the image appears. --> 
-              <span class="hidden-xs"><%=userShowInfor.getName()%></span> </a>
+              <span class="hidden-xs"><%=userShowInfor.getUtName()%></span> </a>
               <ul class="dropdown-menu">
                 <!-- The user image in the menu -->
                 <li class="user-header"> <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-                  <p> <%=userShowInfor.getName()%> - Web Developer <small>Member since Nov. 2012</small> </p>
+                  <p> <%=userShowInfor.getUtName()%> - Web Developer <small>Member since Nov. 2012</small> </p>
                 </li>
                 <!-- Menu Body -->
                 <li class="user-body">
@@ -251,11 +421,11 @@
         <div class="box box-widget widget-user">
             <!-- Add the bg color to the header using any of the bg-* classes -->
             <div class="widget-user-header bg-black" style="background: url('../dist/img/photo1.png') center center;">
-              <h3 class="widget-user-username"><%=userShowInfor.getName()%></h3>
+              <h3 class="widget-user-username"><%=userShowInfor.getUtName()%></h3>
               <h5 class="widget-user-desc">Web Designer</h5>
             </div>
             <div class="widget-user-image">
-              <img class="img-circle" src="../dist/img/user3-128x128.jpg" alt="User Avatar">
+              <img class="img-circle" src="images/userDefaultPic.jpg" alt="User Avatar">
             </div>
             <div class="box-footer">
               <div class="row">
@@ -293,13 +463,13 @@
           </div>
           <!-- /.box-header -->
           <div class="box-body"> <strong><i class="fa fa-book margin-r-5"></i> Education</strong>
-            <p class="text-muted"> <%=userShowInfor.getEducation()%> </p>
+            <p class="text-muted"> <%=userShowInfor.getUtEdu()%> </p>
             <hr>
             <strong><i class="fa fa-map-marker margin-r-5"></i> Location</strong>
-            <p class="text-muted"><%=userShowInfor.getLocation()%></p>
+            <p class="text-muted"><%=userShowInfor.getUtAddr()%></p>
             <hr>
             <strong><i class="fa fa-pencil margin-r-5"></i> Skills</strong>
-            <p>
+            <p id="user-skill-list">
               <span class="label label-danger">UI Design</span>
               <span class="label label-success">Coding</span>
               <span class="label label-info">Javascript</span>
@@ -308,7 +478,7 @@
             </p>
             <hr>
             <strong><i class="fa fa-file-text-o margin-r-5"></i> Notes</strong>
-            <p><%=userShowInfor.getIntro()%></p>
+            <p><%=userShowInfor.getUtIntro()%></p>
           </div>
           <!-- /.box-body --> 
         </div>
@@ -322,99 +492,183 @@
             <li><a href="#password" data-toggle="tab" aria-expanded="false">Password</a></li>
           </ul>
           <div class="tab-content">
-            <div class="tab-pane active" id="brace"> 
-              <div class="container-fluid" style="padding-bottom:15px;">
-              	<div class="row">
-                	<div class="col-md-12">
-                    	<div class="box box-solid">
-                        	<div class="box-header with-border">
-                            	<h3 class="box-title">Browsing History</h3>
-                            </div>
-                            <div class="box-body">
-                            	<table class="table table-hover">
-                                        <tbody>
-                                        <tr>
-                                          <td>11-7-2014</td>
-                                          <td>John Doe</td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                        <tr>
-                                           <td>11-7-2014</td>
-                                          <td>John Doe</td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                        <tr>
-                                          <td>11-7-2014</td>
-                                          <td>John Doe</td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                        <tr>
-                                           <td>11-7-2014</td>
-                                          <td>John Doe</td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                      </tbody></table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="tab-pane active" id="brace">
+              <section class="content">
+                <!-- row -->
                 <div class="row">
-                	<div class="col-md-12">
-                    	<div class="box box-solid">
-                        	<div class="box-header with-border">
-                            	<h3 class="box-title">Your Comment</h3>
-                            </div>
-                            <div class="box-body">
-                            	<table class="table table-hover">
-                                        <tbody>
-                                        <tr>
-                                          <td>11-7-2014</td>
-                                          <td>your conmment conmment conmment conmment </td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                       <tr>
-                                          <td>11-7-2014</td>
-                                          <td>your conmment conmment conmment conmment </td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                        <tr>
-                                          <td>11-7-2014</td>
-                                          <td>your conmment conmment conmment conmment </td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                        <tr>
-                                          <td>11-7-2014</td>
-                                          <td>your conmment conmment conmment conmment </td>
-                                          <td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>
-                                        </tr>
-                                      </tbody></table>
-                            </div>
+                  <div class="col-md-12">
+                    <!-- The time line -->
+                    <ul class="timeline" id="time-line-ul-id">
+                      <!-- timeline time label -->
+                      <li class="time-label">
+                        <span class="bg-red">
+                          10 Feb. 2014
+                        </span>
+                      </li>
+                      <!-- /.timeline-label -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-bookmark bg-blue"></i>
+
+                        <div class="timeline-item" style="background-color: rgb(236, 240, 245)">
+                          <span class="time"><i class="fa fa-clock-o"></i> 12:05</span>
+
+                          <h3 class="timeline-header"><a href="#">You</a> sent you a message</h3>
+
+                          <div class="timeline-body">
+                            Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles,
+                            weebly ning heekya handango imeem plugg dopplr jibjab, movity
+                            jajah plickers sifteo edmodo ifttt zimbra. Babblely odeo kaboodle
+                            quora plaxo ideeli hulu weebly balihoo...
+                          </div>
+                          <div class="timeline-footer">
+                            <a class="btn btn-primary btn-flat btn-xs">View message</a>
+                          </div>
                         </div>
-                    </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-thumbs-o-up bg-aqua"></i>
+
+                        <div class="timeline-item" style="background-color: rgb(236, 240, 245)">
+                          <span class="time"><i class="fa fa-clock-o"></i> 5 mins ago</span>
+
+                          <h3 class="timeline-header no-border"><a href="#">You</a> think a message is very good</h3>
+                          <div class="timeline-body">
+                            This message`s title is ............................
+                          </div>
+                          <div class="timeline-footer">
+                            <a class="btn bg-aqua btn-flat btn-xs">View message</a>
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-comments bg-yellow"></i>
+
+                        <div class="timeline-item" style="background-color: rgb(236, 240, 245)">
+                          <span class="time"><i class="fa fa-clock-o"></i> 27 mins ago</span>
+
+                          <h3 class="timeline-header"><a href="#">Jay White</a> commented on your comment</h3>
+
+                          <div class="timeline-body">
+                            Take me to your leader!
+                            Switzerland is small and neutral!
+                            We are more like Germany, ambitious and misunderstood!
+                          </div>
+                          <div class="timeline-footer">
+                            <a class="btn btn-warning btn-flat btn-xs">View comment</a>
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline time label -->
+                      <li class="time-label">
+                        <span class="bg-green">
+                          3 Jan. 2014
+                        </span>
+                      </li>
+                      <!-- /.timeline-label -->
+                      <li>
+                        <i class="fa fa-bookmark bg-blue"></i>
+
+                        <div class="timeline-item" style="background-color: rgb(236, 240, 245)">
+                          <span class="time"><i class="fa fa-clock-o"></i> 12:05</span>
+
+                          <h3 class="timeline-header"><a href="#">You</a> sent you a message</h3>
+
+                          <div class="timeline-body">
+                            Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles,
+                            weebly ning heekya handango imeem plugg dopplr jibjab, movity
+                            jajah plickers sifteo edmodo ifttt zimbra. Babblely odeo kaboodle
+                            quora plaxo ideeli hulu weebly balihoo...
+                          </div>
+                          <div class="timeline-footer">
+                            <a class="btn btn-primary btn-flat btn-xs">View message</a>
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-thumbs-o-up bg-aqua"></i>
+
+                        <div class="timeline-item" style="background-color: rgb(236, 240, 245)">
+                          <span class="time"><i class="fa fa-clock-o"></i> 5 mins ago</span>
+
+                          <h3 class="timeline-header no-border"><a href="#">You</a> think a message is very good</h3>
+                          <div class="timeline-body">
+                            This message`s title is ............................
+                          </div>
+                          <div class="timeline-footer">
+                            <a class="btn bg-aqua btn-flat btn-xs">View message</a>
+                          </div>
+                        </div>
+                      </li>
+                      <!-- END timeline item -->
+                      <!-- timeline item -->
+                      <li>
+                        <i class="fa fa-comments bg-yellow"></i>
+
+                        <div class="timeline-item" style="background-color: rgb(236, 240, 245)">
+                          <span class="time"><i class="fa fa-clock-o"></i> 27 mins ago</span>
+
+                          <h3 class="timeline-header"><a href="#">Jay White</a> commented on your comment</h3>
+
+                          <div class="timeline-body">
+                            Take me to your leader!
+                            Switzerland is small and neutral!
+                            We are more like Germany, ambitious and misunderstood!
+                          </div>
+                          <div class="timeline-footer">
+                            <a class="btn btn-warning btn-flat btn-xs">View comment</a>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <!-- /.col -->
                 </div>
-              </div>
+                <!-- /.row -->
+              </section>
             </div>
             <div class="tab-pane" id="interest">
               <div class="container-fluid">
                 <div class="row">
-                  <div class="col-md-6">
+                  <div class="col-md-12">
                     <div class="box box-danger">
                       <div class="box-header with-border">
                         <h3 class="box-title"><strong><i class="fa fa-pencil margin-r-5"></i> Your Interest</strong></h3>
                       </div>
                       <!-- /.box-header -->
                       <div class="box-body" style="min-height:150px;">
-                        <p> <span class="label label-danger margin-r-5">UI Design</span> <span class="label label-success margin-r-5">Coding</span> <span class="label label-info margin-r-5">Javascript</span> <span class="label label-warning margin-r-5">PHP</span> <span class="label label-primary margin-r-5">Node.js</span> <span class="label label-info margin-r-5">Javascript</span> <span class="label label-warning margin-r-5">PHP</span> </p>
+                        <p id="interest-tag-list">
+                          <span class="label label-danger margin-r-5">UI Design</span>
+                          <span class="label label-success margin-r-5">Coding</span>
+                          <span class="label label-info margin-r-5">Javascript</span>
+                          <span class="label label-warning margin-r-5">PHP</span>
+                          <span class="label label-primary margin-r-5">Node.js</span>
+                          <span class="label label-info margin-r-5">Javascript</span>
+                          <span class="label label-warning margin-r-5">PHP</span>
+                        </p>
                       </div>
                       <!-- /.box-body --> 
                     </div>
                     <div class="box box-warning">
-                        <div class="box-header">
-                          <h3 class="box-title with-border"><strong><i class="fa fa-pencil margin-r-5"></i> Hot Interest</strong></h3>
+                        <div class="box-header with-border">
+                          <h3 class="box-title"><strong><i class="fa fa-pencil margin-r-5"></i> Hot Interest</strong></h3>
+                          <div class="input-group pull-right" style="width: 300px">
+                            <input name="message" id="input-tag-name" placeholder="Tag name ..." class="form-control" type="text">
+                            <span class="input-group-btn">
+                              <button type="submit" class="btn btn-primary btn-flat" onclick="searchTagListByLikeName()"><i class="fa fa-fw fa-search"></i></button>
+                            </span>
+                          </div>
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body" style="min-height:150px;">
-                          <p>
+                          <p id="hot-tag-list">
                             <span class="label label-danger margin-r-5">UI Design</span>
                             <span class="label label-success margin-r-5">Coding</span>
                             <span class="label label-info margin-r-5">Javascript</span>
@@ -425,7 +679,7 @@
                         <!-- /.box-body -->
                       </div>
                   </div>
-                  <div class="col-md-6">
+                  <%--<div class="col-md-6">
                   	<form class="form-horizontal">
                     <div class="form-group">
                       <div class="col-sm-8">
@@ -447,7 +701,7 @@
                         </div>
                         <div class="box-footer"> <span class="text-muted">In the search search to 5 </span> </div>
                       </div>
-                  </div>
+                  </div>--%>
                 </div>
                 
               </div>
@@ -458,54 +712,45 @@
                 <div class="form-group">
                   <label for="inputName" class="col-sm-2 control-label">Name</label>
                   <div class="col-sm-10">
-                    <input class="form-control" id="inputName" name="name" placeholder="Name" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="name" name="userShowInfor"/>'>
+                    <input class="form-control" id="inputName" name="name" placeholder="Name" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="utName" name="userShowInfor"/>'>
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="inputEmail" class="col-sm-2 control-label">Email</label>
                   <div class="col-sm-10">
-                    <input class="form-control" id="inputEmail" name="email" placeholder="Email" required="required" pattern="^.{1,50}$" type="email" value='<jsp:getProperty property="email" name="userShowInfor"/>'>
+                    <input class="form-control" id="inputEmail" name="email" disabled="disabled" placeholder="Email" required="required" pattern="^.{1,50}$" type="email" value='<jsp:getProperty property="utMail" name="userShowInfor"/>'>
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Location</label>
                   <div class="col-sm-10">
-                    <input class="form-control" id="inputLocation" name="location" placeholder="Location" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="location" name="userShowInfor"/>'>
+                    <input class="form-control" id="inputLocation" name="location" placeholder="Location" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="utAddr" name="userShowInfor"/>'>
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Profession</label>
                   <div class="col-sm-10">
-                    <input class="form-control" id="inputProfession" name="profession" placeholder="Profession" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="profession" name="userShowInfor"/>'>
+                    <input class="form-control" id="inputProfession" name="profession" placeholder="Profession" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="utPro" name="userShowInfor"/>'>
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Education</label>
                   <div class="col-sm-10">
-                    <input class="form-control" id="inputEducation" name="education" placeholder="Education" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="education" name="userShowInfor"/>'>
+                    <input class="form-control" id="inputEducation" name="education" placeholder="Education" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="utEdu" name="userShowInfor"/>'>
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="inputSkills" class="col-sm-2 control-label">Skills</label>
                   <div class="col-sm-10">
-                    <input class="form-control" id="inputSkills" name="skills" placeholder="Skills" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="skills" name="userShowInfor"/>'>
+                    <input class="form-control" id="inputSkills" name="skills" placeholder="Skills" required="required" pattern="^.{1,50}$" type="text" value='<jsp:getProperty property="utSkill" name="userShowInfor"/>'>
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Introducation</label>
                   <div class="col-sm-10">
-                    <textarea class="form-control" id="inputIntroducation" name="intro" required="required" maxlength="150" placeholder="Introducation"><jsp:getProperty property="intro" name="userShowInfor"/></textarea>
+                    <textarea class="form-control" id="inputIntroducation" name="intro" required="required" maxlength="150" placeholder="Introducation"><jsp:getProperty property="utIntro" name="userShowInfor"/></textarea>
                   </div>
                  </div>
-                <div class="form-group">
-                  <div class="col-sm-offset-2 col-sm-10">
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox">
-                        I agree to the <a href="#">terms and conditions</a> </label>
-                    </div>
-                  </div>
-                </div>
                 <div class="form-group">
                   <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" class="btn btn-danger">Submit</button>

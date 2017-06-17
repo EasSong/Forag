@@ -42,15 +42,22 @@ public class UserDaoImpl implements UserDao{
         Session session = sessionFactory.getCurrentSession();
 		Transaction transaction = session.beginTransaction();
 		try {
-			session.save(userBean);
-			transaction.commit();
+			Query query = session.createNativeQuery("insert into foragOwner.usertable(utId,utMail,utPass,Utname,Utdate) values(foragOwner.UTID_SEQ.NEXTVAL,?,?,?,sysdate)");
+//			query.setParameter(1,"foragOwner.UTID_SEQ.NEXTVAL");
+			query.setParameter(1,userBean.getUtMail());
+			query.setParameter(2,userBean.getUtPass());
+			query.setParameter(3,userBean.getUtName());
+			query.executeUpdate();
 			code = ConstantDeclare.SUCCESS_USER_REGISTER;
 		}catch (Exception e){
 			code = ConstantDeclare.ERROR_DB_ERROR;
-			//transaction.rollback();
+			transaction.rollback();
 			e.printStackTrace();
 		}
-		return code;
+        finally {
+		    transaction.commit();
+        }
+        return code;
 	}
     /*
         ÓÃ»§µÇÂ¼

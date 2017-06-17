@@ -1,0 +1,12 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean name="tagDaoImpl" class="cuit.dao.impl.TagDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean name="tagService" class="cuit.service.impl.TagServiceImpl">
+        <property name="tagDao" ref="tagDaoImpl"/>
+    </bean>
+</beans>

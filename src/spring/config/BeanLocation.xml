@@ -8,4 +8,5 @@
     <import resource="../beans/User.xml"/>
     <import resource="../beans/Message.xml"/>
     <import resource="../beans/Comment.xml"/>
+    <import resource="../beans/Tag.xml"/>
 </beans>

@@ -1,9 +1,11 @@
 package cuit.servlet;
 
 import cuit.model.UserBean;
+import cuit.service.MessageService;
 import cuit.service.UserService;
 import cuit.util.AppUtil;
 import cuit.util.ConstantDeclare;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -13,6 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Date;
+import java.util.ArrayList;
 
 /**
  * Servlet implementation class ShowInforEdit
@@ -89,7 +93,7 @@ public class ShowInforEdit extends HttpServlet {
 			if (session.getAttribute("isLogin") == null || !(Boolean) session.getAttribute("isLogin")){
 				JSONObject jsonObject = new JSONObject();
                 jsonObject.put("state", "notLogin");
-				out.print(jsonObject);
+				out.print(jsonObject.toString());
 			}
 			else{
 				//封装用户信息，并且置state为登录状态
@@ -102,10 +106,26 @@ public class ShowInforEdit extends HttpServlet {
 				jsonUser.put("uEmail",userBean.getUtMail());
 				jsonUser.put("uPic",userBean.getuPic());
 				jsonUser.put("uProfession",userBean.getUtPro());
-				jsonUser.put("uDate",userBean.getUtDate());
+				jsonUser.put("uDate",userBean.getUtDate().toString());
+				jsonUser.put("uAddr",userBean.getUtAddr());
+				jsonUser.put("uEdu",userBean.getUtEdu());
+				jsonUser.put("uIntro",userBean.getUtIntro());
+				jsonUser.put("uSkill",userBean.getUtSkill());
+				jsonUser.put("uInterest",userBean.getUtInterest());
 				jsonObject.put("userInfor",jsonUser);
 				out.print(jsonObject.toString());
 			}
+		}
+		else if (type.equals("hotTag")){
+			MessageService messageService = AppUtil.getMessageService();
+			Date date = new Date(System.currentTimeMillis());
+			String nowDateStr = date.toString();
+			//获取当前热门的标签的id
+			ArrayList<String> hotTags = messageService.selectHotTagByDate(nowDateStr);
+			out.print(JSONArray.fromObject(hotTags));
+		}
+		else if (type.equals("interest")){
+			
 		}
 	}
 

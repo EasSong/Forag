@@ -1,9 +1,7 @@
 package cuit.log;
 
 import cuit.model.LogInfo;
-import net.sf.json.JSONObject;
-
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Esong on 2017/5/26.
@@ -11,5 +9,5 @@ import java.util.ArrayList;
  */
 public interface UserLog {
     int writeUserLog(String uId, LogInfo logInfo);
-    JSONObject readUserLog(String uId, String date, int maxLength);
+    List<String> readUserLog(String uId);
 }
