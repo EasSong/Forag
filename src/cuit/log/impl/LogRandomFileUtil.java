@@ -103,7 +103,7 @@ public class LogRandomFileUtil {
         return lines;
     }
 
-    private final static String FILE_LOG_HEADER = "time|log-type|log-context|msg-id|msg-tags\r\n";
+    private final static String FILE_LOG_HEADER = "time|logType|logContext|objName|msgId|msgTags\r\n";
 
     public static boolean createLogFile(String logFileName) {
         String fullFilePath = LOG_FILE_ROOT_PATH + logFileName;

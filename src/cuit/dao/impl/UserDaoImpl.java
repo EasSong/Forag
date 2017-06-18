@@ -48,6 +48,7 @@ public class UserDaoImpl implements UserDao{
 			query.setParameter(2,userBean.getUtPass());
 			query.setParameter(3,userBean.getUtName());
 			query.executeUpdate();
+//            session.save(userBean);
 			code = ConstantDeclare.SUCCESS_USER_REGISTER;
 		}catch (Exception e){
 			code = ConstantDeclare.ERROR_DB_ERROR;
@@ -170,27 +171,14 @@ public class UserDaoImpl implements UserDao{
         Session session = sessionFactory.getCurrentSession();
         Transaction transaction = session.beginTransaction();
         try{
-            Query query = session.createQuery(SQL_UPDATE_USER_SHOW_INFOR);
-            query.setParameter(0,userBean.getUtName());
-            query.setParameter(1,userBean.getUtMail());
-            query.setParameter(2,userBean.getUtAddr());
-            query.setParameter(3,userBean.getUtPro());
-            query.setParameter(4,userBean.getUtEdu());
-            query.setParameter(5,userBean.getUtIntro());
-            query.setParameter(6,userBean.getUtSkill());
-            query.setParameter(7,userBean.getUtId());
-            int resultId = query.executeUpdate();
-            transaction.commit();
-            if (resultId == 1){
-                opCode = ConstantDeclare.SUCCESS_EDIT_PASSWORD;
-            }
-            else {
-                opCode = ConstantDeclare.ERROR_PASSWORD_EDIT;
-            }
+            session.update(userBean);
+            opCode = ConstantDeclare.SUCCESS_EDIT_USERHSOWINFOR;
         }catch (Exception e){
             opCode = ConstantDeclare.ERROR_DB_ERROR;
             transaction.rollback();
             e.printStackTrace();
+        } finally {
+            transaction.commit();
         }
 
         return opCode;

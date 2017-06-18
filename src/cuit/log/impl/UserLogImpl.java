@@ -84,10 +84,17 @@ public class UserLogImpl implements UserLog {
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
         Date nowDate = new Date(System.currentTimeMillis());
         MessageService messageService = AppUtil.getMessageService();
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("type", "date");
-        jsonObject.put("date", dateFormat.format(nowDate));
-        logJsonArr.add(jsonObject);
+        try {//比较当前日期和最近一条日志的时间
+            if (dateFormat.format(dateTimeFormat.parse(listLog.get(listLog.size() - 1).split("-1b1-")[0])).equals(dateFormat.format(nowDate))) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("type", "date");
+                jsonObject.put("date", dateFormat.format(nowDate));
+                logJsonArr.add(jsonObject);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         for (int i = listLog.size() - 1; i >= 0; i--) {
             if (offset++ < offsetLength) {
                 continue;
@@ -149,5 +156,30 @@ public class UserLogImpl implements UserLog {
         long between_days = (time2 - time1) / (1000 * 3600 * 24);
 
         return String.valueOf(between_days);
+    }
+
+    public JSONArray readUserLogForSocket(String uId, int offsetLength, int maxLength){
+        List<String> listLog = readUserLog(uId);
+        JSONArray logArr = new JSONArray();
+        int offsetCount = 0;
+        int logCount = 0;
+
+        for (int i = listLog.size() - 1; i >= 1; i--){
+            if (offsetCount++ < offsetLength){
+                continue;
+            }
+            if (logCount++ > maxLength){
+                break;
+            }
+            String[] logItems = listLog.get(i).split("-1b1-");
+            JSONObject logInfo = new JSONObject();
+            logInfo.put("time",logItems[0]);
+            logInfo.put("logType",logItems[1]);
+            logInfo.put("msgId",logItems[4]);
+            logInfo.put("msgTags",logItems[5]);
+            logArr.add(logInfo);
+        }
+
+        return logArr;
     }
 }

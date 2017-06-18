@@ -1,9 +1,11 @@
 package cuit.servlet;
 
 import cuit.model.MessageBean;
+import cuit.model.UserBean;
 import cuit.service.CommentService;
 import cuit.service.MessageService;
 import cuit.util.AppUtil;
+import cuit.util.MySocket;
 import cuit.util.MyUtil;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -27,48 +29,64 @@ public class LoadMSG extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String type = request.getParameter("type");
         JSONObject jsonData = new JSONObject();
-        if (type.equals("hot") || type.equals("special")/*测试用*/) {//指示无用户登录，返回给前台最热门的数据
-            MessageService messageService = AppUtil.getMessageService();
-            CommentService commentService = AppUtil.getCommentService();
+        String changeState = request.getParameter("ChangeState");
+        //以xxxx-xx-xx（年-月-日）的方式获取当前日期
+        Date date = new Date(System.currentTimeMillis());
+        String nowDateStr = date.toString();
+        //获取当前热门的标签的id
+        JSONObject tagJson = MySocket.getHotTags(0, 10);
+        request.getSession().setAttribute("hotTag", tagJson);
+        String[] hotTags = MyUtil.getTagArrByJsonArr(tagJson.getJSONArray("tags"));
+        ArrayList<String> nowTags = new ArrayList<>();
+        String hot = request.getParameter("hot");
+        String recommend = request.getParameter("user");
+        if (type.equals("hot")) {//指示无用户登录，返回给前台最热门的数据
             //封装用户登录状态
             jsonData.put("state", "noLogin");
-            String changeState = request.getParameter("ChangeState");
-            //以xxxx-xx-xx（年-月-日）的方式获取当前日期
-            Date date = new Date(System.currentTimeMillis());
-            String nowDateStr = date.toString();
-            //获取当前热门的标签的id
-            ArrayList<String> hotTags = messageService.selectHotTagByDate(nowDateStr);
-            ArrayList<String> nowTags = new ArrayList<>();
-            if (changeState.equals("changed")){
-                String[] nowTempTags = request.getParameter("listTags").split(",");
-                for (String temp:nowTempTags){
+            nowTags.add(hot);
+        } else if (type.equals("special")) {//指示已有用户登录，返回给用户特定的数据
+            jsonData.put("state", "isLogin");
+            nowTags.add(recommend);
+            nowTags.add(hot);
+        }
+        if (changeState.equals("changed")) {
+            nowTags = MyUtil.getArrayListByArr(request.getParameter("listTags").split(","));
+        } else {
+            int count = nowTags.size();
+            if (hotTags.length != 0) {
+                for (String temp : hotTags) {
                     nowTags.add(temp);
-                }
-            }
-            else{
-                int count = 0;
-                if (hotTags != null && hotTags.size() != 0) {
-                    for (String temp : hotTags) {
-                        nowTags.add(temp);
-                        count++;
-                        if (count >= 6) {
-                            break;
-                        }
+                    if (count++ > 8) {
+                        break;
                     }
                 }
             }
-            if (hotTags == null || hotTags.size() == 0) {
-                jsonData.put("dataState","notHaveData");
+        }
+        if (hotTags.length == 0) {
+            jsonData.put("dataState", "notHaveData");
+        } else {
+            jsonData.put("dataState", "haveData");
+            JSONArray jsonArrTagName = MyUtil.getJsonArrTagsByArrTags(hotTags);
+            jsonData.put("tagName", jsonArrTagName);
+            jsonData.put("nowHotTags", MyUtil.getJsonArrTagsByListTags(nowTags));
+            JSONArray jsonArrTag = new JSONArray();
+            JSONArray jsonObjMSGs = new JSONArray();
+            CommentService commentService = AppUtil.getCommentService();
+            String oldTags = (String) request.getSession().getAttribute("oldTags");
+            if (oldTags != null && oldTags.equals(nowTags.toString())) {
+                jsonData = (JSONObject) request.getSession().getAttribute("msgInfo");
             } else {
-                jsonData.put("dataState","haveData");
-                JSONArray jsonArrTagName = MyUtil.getJsonArrTagsByListTags(hotTags);
-                jsonData.put("tagName", jsonArrTagName);
-                jsonData.put("nowHotTags", MyUtil.getJsonArrTagsByListTags(nowTags));
-                JSONArray jsonArrTag = new JSONArray();
-                JSONArray jsonObjMSGs = new JSONArray();
                 for (String tag : nowTags) {
-                    ArrayList<MessageBean> listBean = messageService.selectByTag(tag);
-                    if (listBean == null) {
+                    JSONArray msgArr = new JSONArray();
+                    String ip = request.getRemoteAddr();
+                    if (tag.equals(hot)) {
+                        msgArr = MySocket.getHotMsgIntro(ip, 8, 0);
+                    } else if (tag.equals(recommend)) {
+                        msgArr = MySocket.getUserInterestMsg((UserBean)request.getSession().getAttribute("userShowInfor"),8);
+                    } else {
+                        msgArr = MySocket.getMsgIntroByTag(tag, ip, 8, 0);
+                    }
+                    if (msgArr == null) {
                         jsonArrTag.add(-1);
                         jsonObjMSGs.add("null");
                         continue;
@@ -76,45 +94,40 @@ public class LoadMSG extends HttpServlet {
                     jsonArrTag.add(tag);
                     JSONObject jsonObjMSG = new JSONObject();
                     JSONArray jsonArray = new JSONArray();
-                    int count = 0;
                     //封装文章信息
-                    for (MessageBean messageBean : listBean) {
+                    for (int k = 0; k < msgArr.size(); k++) {
+                        JSONArray msg = msgArr.getJSONArray(k);
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("mId", messageBean.getmId());
-                        jsonObject.put("mTime", messageBean.getmPublishTime().toString().substring(0, messageBean.getmPublishTime().toString().length() - 2));
-                        jsonObject.put("mTagData", messageService.selectTagListByMId(messageBean.getmId()));
-                        jsonObject.put("mTitle", messageBean.getmTitle());
-                        jsonObject.put("mIntro", messageBean.getmIntro());
-                        jsonObject.put("mHavePic", messageBean.getmPic());
-                        if (messageBean.getmPic()!=null) {
-                            jsonObject.put("mPicUri", messageBean.getmPic());
-                        }
-                        jsonObject.put("mLike_count", messageBean.getmLikeCount());
-                        jsonObject.put("mComment_count", commentService.selectCommentCountByMId(messageBean.getmId()));
-                        jsonObject.put("mTransmit_count", messageBean.getmTransmitCount());
+                        jsonObject.put("mId", msg.getString(0));
+                        jsonObject.put("mTime", msg.getString(6));
+                        String msgTag = msg.getString(4);
+                        jsonObject.put("mTagData", msgTag.substring(1, msgTag.length() - 1));
+                        jsonObject.put("mTitle", msg.getString(1));
+                        jsonObject.put("mIntro", msg.getString(2));
+                        jsonObject.put("mPic", msg.getString(3));
+                        jsonObject.put("mLikeCount", msg.getInt(7));
+                        jsonObject.put("mCommentCount", commentService.selectCommentCountByMId(msg.getInt(0)));
+                        jsonObject.put("mDislikeCount", msg.getInt(8));
+                        jsonObject.put("mCollectCount", msg.getInt(9));
+                        jsonObject.put("mTransmitCount", msg.getInt(10));
                         jsonArray.add(jsonObject);
-                        count++;
                     }
-                    jsonObjMSG.put("count", count);
+                    jsonObjMSG.put("count", jsonArray.size());
                     jsonObjMSG.put("data", jsonArray);
                     jsonObjMSGs.add(jsonObjMSG);
                 }
                 jsonData.put("tags", jsonArrTag);
                 jsonData.put("msgData", jsonObjMSGs);
+                request.getSession().setAttribute("oldTags",nowTags.toString());
+                request.getSession().setAttribute("msgInfo",jsonData);
             }
         }
         //System.out.print(jsonData.toString());
-//        else if (type.equals("special")){//指示已有用户登录，返回给用户特定的数据
-//
-//        }
-        else if (type.equals("changeTags")){
-
-        }
         System.out.println(jsonData.toString());
         response.getWriter().print(jsonData.toString());
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doPost(request,response);
+        doPost(request, response);
     }
 }

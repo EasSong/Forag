@@ -5,6 +5,8 @@ import cuit.service.MessageService;
 import cuit.service.UserService;
 import cuit.util.AppUtil;
 import cuit.util.ConstantDeclare;
+import cuit.util.MyUtil;
+import cuit.util.TaskTimer;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -36,6 +38,7 @@ public class ShowInforEdit extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doPost(request,response);
 	}
 
 	/**
@@ -59,7 +62,6 @@ public class ShowInforEdit extends HttpServlet {
 				response.setHeader("refresh", "1;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
 			} else {
 				userShowInfor.setUtName(request.getParameter("name"));
-				userShowInfor.setUtMail(request.getParameter("email"));
 				userShowInfor.setUtAddr(request.getParameter("location"));
 				userShowInfor.setUtPro(request.getParameter("profession"));
 				userShowInfor.setUtEdu(request.getParameter("education"));
@@ -125,7 +127,15 @@ public class ShowInforEdit extends HttpServlet {
 			out.print(JSONArray.fromObject(hotTags));
 		}
 		else if (type.equals("interest")){
-			
+			String userInterest = request.getParameter("interest");
+			UserBean userBean = (UserBean) session.getAttribute("userShowInfor");
+			MyUtil.setUserInterest(userBean,userInterest);
+			TaskTimer.resetTimeDelay();
+			TaskTimer.addSubmitCount();
+			if (TaskTimer.getSubmitCount() == 1){
+				Thread thread = new Thread(new TaskTimer());
+				thread.start();
+			}
 		}
 	}
 

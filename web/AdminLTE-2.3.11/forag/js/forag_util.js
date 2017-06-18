@@ -86,18 +86,19 @@ function getMinOrMaxIndex(posArr,type) {
     }
 }
 //增加数组的删除功能
-Array.prototype.removeByValue = function(val) {
-    for(var i=0; i<this.length; i++) {
-        if(this[i] == val) {
-            this.splice(i, 1);
+function removeByValue(val,arr) {
+    for(var i=0; i<arr.length; i++) {
+        if(arr[i] == val) {
+            arr.splice(i, 1);
             break;
         }
     }
+    return arr;
 }
 //增加数组检查重复的功能
-Array.prototype.contains = function ( needle ) {
-    for (var i in this) {
-        if (this[i] == needle) return true;
+function contains(needle,arr) {
+    for (var i in arr) {
+        if (arr[i] == needle) return true;
     }
     return false;
 }

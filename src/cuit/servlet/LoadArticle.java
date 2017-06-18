@@ -33,6 +33,7 @@ public class LoadArticle extends HttpServlet {
         response.setCharacterEncoding("UTF-8");//同步response的编码
         HttpSession httpSession = request.getSession();
         String mid = request.getParameter("mId");
+        String uId = "null";
         MessageService messageService = AppUtil.getMessageService();
         CommentService commentService = AppUtil.getCommentService();
         UserService userService = AppUtil.getUserService();
@@ -40,6 +41,27 @@ public class LoadArticle extends HttpServlet {
         ArrayList<CommentBean> listCommentBean = commentService.selectByMId(Integer.parseInt(mid));
         //初始化封装一部数据的JSON对象
         JSONObject jsonData = new JSONObject();
+        //判断是否有用户登录，有则封装详细信息，无则封装一个字符串(notLogin)
+        if (httpSession.getAttribute("isLogin") == null || !(Boolean) httpSession.getAttribute("isLogin")){
+            jsonData.put("state","notLogin");
+            jsonData.put("userInfo","notLogin");
+        }
+        else{
+            jsonData.put("state","isLogin");
+            UserBean userBean = (UserBean) httpSession.getAttribute("userShowInfor");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("uId",userBean.getUtId());
+            jsonObject.put("uName",userBean.getUtName());
+            jsonObject.put("uEmail",userBean.getUtMail());
+            jsonObject.put("uPic",userBean.getuPic());
+            jsonObject.put("uProfession",userBean.getUtPro());
+            jsonObject.put("uDate",userBean.getUtDate().toString());
+            jsonData.put("userInfo",jsonObject);
+            UserLog userLog = new UserLogImpl();
+            Date date = new Date(System.currentTimeMillis());
+            LogInfo logInfo = new LogInfo(date.toString(),"browse","browse msg",mid,messageBean.getmTags(),"null");
+            userLog.writeUserLog(String.valueOf(userBean.getUtId()),logInfo);
+        }
         //封装文章(Message)信息
         JSONObject jsonMSG = new JSONObject();
         jsonMSG.put("mId",messageBean.getmId());
@@ -48,8 +70,7 @@ public class LoadArticle extends HttpServlet {
         jsonMSG.put("mTags",messageBean.getmTags());
         jsonMSG.put("mTitle",messageBean.getmTitle());
         jsonMSG.put("mIntro",messageBean.getmIntro());
-        MySocket mySocket = new MySocket();
-        JSONObject contextData = mySocket.runSocket("{\"name\":\"generatePage\",\"params\":{\"pageid\":\""+messageBean.getmId()+"\",\"template\":\"articleTemplate.json\", \"userid\":\"123\"}}\r\n");
+        JSONObject contextData = MySocket.getMsgDetail(mid,uId);
         jsonMSG.put("mContext",contextData.get("result"));
         jsonMSG.put("mLike_count",messageBean.getmLikeCount());
         jsonMSG.put("mCollect_count",messageBean.getmCollectCount());
@@ -91,27 +112,6 @@ public class LoadArticle extends HttpServlet {
         }
         else{
             jsonData.put("commentData","notComment");
-        }
-        //判断是否有用户登录，有则封装详细信息，无则封装一个字符串(notLogin)
-        if (httpSession.getAttribute("isLogin") == null || !(Boolean) httpSession.getAttribute("isLogin")){
-           jsonData.put("state","notLogin");
-           jsonData.put("userInfo","notLogin");
-        }
-        else{
-            jsonData.put("state","isLogin");
-            UserBean userBean = (UserBean) httpSession.getAttribute("userShowInfor");
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("uId",userBean.getUtId());
-            jsonObject.put("uName",userBean.getUtName());
-            jsonObject.put("uEmail",userBean.getUtMail());
-            jsonObject.put("uPic",userBean.getuPic());
-            jsonObject.put("uProfession",userBean.getUtPro());
-            jsonObject.put("uDate",userBean.getUtDate().toString().substring(0,userBean.getUtDate().toString().length()-2));
-            jsonData.put("userInfo",jsonObject);
-            UserLog userLog = new UserLogImpl();
-            Date date = new Date(System.currentTimeMillis());
-            LogInfo logInfo = new LogInfo(date.toString(),"browse","browse msg",mid,messageBean.getmTags(),"null");
-            userLog.writeUserLog(String.valueOf(userBean.getUtId()),logInfo);
         }
         System.out.println(jsonData.toString());
         response.getWriter().print(jsonData.toString());

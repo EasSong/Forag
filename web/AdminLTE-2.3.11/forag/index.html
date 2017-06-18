@@ -85,18 +85,18 @@
                     var userInfor = temp.userInfor;
                     document.getElementById("profile-user-name").innerHTML = userInfor.uName;
                     document.getElementById("profile-user-name-hidden").innerHTML = userInfor.uName;
-                    LoadMSG("type=hot&ChangeState=noChange");
+                    LoadMSG("type=special&ChangeState=noChange&hot=热门&user=推荐");
                 }
                 else if(temp.state == "notLogin"){
                     topLinkUl.display = "inline";
                     topUserInforUl.display = "none";
-                    LoadMSG("type=hot&ChangeState=noChange");
+                    LoadMSG("type=hot&ChangeState=noChange&hot=热门&user=推荐");
                 }
                 else if (temp.state == "success"){
                     location.href="/AdminLTE-2.3.11/forag/index.html";
                     topLinkUl.display = "inline";
                     topUserInforUl.display = "none";
-                    LoadMSG("type=special&ChangeState=noChange");
+                    LoadMSG("type=special&ChangeState=noChange&hot=热门&user=推荐");
                 }
             }
         }
@@ -153,7 +153,7 @@
                     alert("后台推荐数据为空，请联系管理员。\nQQ:1300730251");
                     return;
                 }
-                var hotTags = jsonObj.tags;
+                var tagState = jsonObj.tags;
                 hotTagName = jsonObj.tagName;
                 var nowHotTags = jsonObj.nowHotTags;
                 arrTags = nowHotTags;
@@ -231,38 +231,37 @@
                             + "</div>"
                             + "<div class='box-body'>";
                         var t = "style='width:100%'";
-                        //alert(data[i].mHavePic)
-                        if (data[i].mHavePic != "" && data[i].mHavePic != null && data[i].mHavePic != undefined) {
+                        //alert(data[i].mPic)
+                        if (data[i].mPic != "" && data[i].mPic != null && data[i].mPic != undefined && data[i].mPic != "None" && data[i].mPic != "http://himg2.huanqiu.com/statics/images/more-icoCopy.png") {
                             temp += "<div class='col-md-6'> " +
                                 <!--pic url->data[i].mPicUri -->
-                                "<img src='"+data[i].mPicUri+"' class='img-responsive'/> </div>";
+                                "<img src='"+data[i].mPic+"' class='img-responsive'/> </div>";
                             t = "class='col-md-6'";
                         }
                         temp += "<div " + t + ">"
-                            + "<div class='user-block' style='margin-top:5px;'> <img class='img-circle img-bordered-sm' src='../dist/img/user1-128x128.jpg' alt='user image'> "
-                            + "<span class='username'> <a href='#'>Jonathan Burke Jr.</a> </span> <span class='description'>Shared publicly - 7:30 PM today</span> </div>"
-                            + "<p style='margin-top:5px;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + data[i].mIntro + "</p>"
+                            + "<p style='margin-top:5px;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + ((data[i].mIntro=="None")?"":data[i].mIntro) + "</p>"
                             + "</div>"
                             + "</div>"
                             + "<div class='box-footer'>"
                             + "<ul class='list-inline' style='margin-bottom:0px;'>";
-                        var tagData = data[i].mTagData;
-                        var tagId = tagData.tagId;
-                        var tagName = tagData.tagName;
-                        var tagWeight = tagData.tagWeight;
+                        var tagData = (data[i].mTagData).tag;
+                        //var tagId = tagData.tagId;
+                        //var tagName = tagData.tagName;
+                        //var tagWeight = tagData.tagWeight;
                         // 5.17修改之处
-                        for (var j = 0; j < tagName.length; j++) {
+                        var count = 0;
+                        for (var tagName in tagData) {
                             temp += "<li> " +
                                 "<a href='#' class='link-black text-sm'>" +
                                 "<i class='margin-r-5'>" +
-                                "<span class='badge " + liColor[j % liColor.length] + "'>"+tagName[j]+"</span>" +
+                                "<span class='badge " + liColor[count++ % liColor.length] + "'>"+tagName+"</span>" +
                                 "</i>" +
                                 "</a> " +
                                 "</li>";
                         }
-                        temp += "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-share margin-r-5'></i>" + data[i].mTransmit_count + "</a></li>"
-                            + "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-thumbs-o-up margin-r-5'></i>" + data[i].mLike_count + "</a> </li>"
-                            + "<li class='pull-right'> <a href='#' class='link-black text-sm'><i class='fa fa-comments-o margin-r-5'></i>" + data[i].mComment_count + "</a></li>"
+                        temp += "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-share margin-r-5'></i>" + data[i].mTransmitCount + "</a></li>"
+                            + "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-thumbs-o-up margin-r-5'></i>" + data[i].mLikeCount + "</a> </li>"
+                            + "<li class='pull-right'> <a href='#' class='link-black text-sm'><i class='fa fa-comments-o margin-r-5'></i>" + data[i].mCommentCount + "</a></li>"
                             + "</ul>"
                             + "</div>"
                             + "</div>"
@@ -286,14 +285,14 @@
         }
         var parentElement = obj.parentElement;
         parentElement.removeChild(obj);
-        arrTags.removeByValue(obj.innerHTML);
+        arrTags = removeByValue(obj.innerHTML,arrTags);
     }
     function addTagToNowTagList(obj) {
         if (arrTags.length >= 8){
             alert("最多存在8个标签");
             return;
         }
-        if (arrTags.contains(obj.innerHTML)){
+        if (contains(obj.innerHTML,arrTags)){
             alert("不能重复添加");
             return;
         }
@@ -318,7 +317,7 @@
     }
     function submitChangeTags() {
         //alert(arrTags);
-        LoadMSG("type=hot&ChangeState=changed&listTags="+arrTags);
+        LoadMSG("type=hot&ChangeState=changed&listTags="+arrTags+"&hot=热门&user=推荐");
     }
     function searchTagListByLikeName() {
         var tagName = document.getElementById("input-tag-name").value;

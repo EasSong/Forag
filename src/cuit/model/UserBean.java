@@ -1,6 +1,7 @@
 package cuit.model;
 
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 public class UserBean {
 	private int utId;
@@ -16,6 +17,21 @@ public class UserBean {
 	private String utSkill;
 	private String uPic;
 	private String utInterest;
+
+	public UserBean() {
+		this.utName = "unknown";
+		this.utPass = "unknown";
+		this.utFeatureUri = "unknown";
+		this.utDate = new Date(System.currentTimeMillis());
+		this.utMail = "unknown";
+		this.utAddr = "unknown";
+		this.utPro = "unknown";
+		this.utEdu = "unknown";
+		this.utIntro = "unknown";
+		this.utSkill = "unknown";
+		this.uPic = "unknown";
+		this.utInterest = "unknown";
+	}
 
 	public int getUtId() {
 		return utId;
@@ -119,5 +135,37 @@ public class UserBean {
 
 	public void setUtInterest(String utInterest) {
 		this.utInterest = utInterest;
+	}
+
+	@Override
+	public String toString() {
+		return "UserBean{" +
+				"utId=" + utId +
+				", utName='" + utName + '\'' +
+				", utPass='" + utPass + '\'' +
+				", utFeatureUri='" + utFeatureUri + '\'' +
+				", utMail='" + utMail + '\'' +
+				", utDate=" + utDate +
+				", utAddr='" + utAddr + '\'' +
+				", utPro='" + utPro + '\'' +
+				", utEdu='" + utEdu + '\'' +
+				", utIntro='" + utIntro + '\'' +
+				", utSkill='" + utSkill + '\'' +
+				", uPic='" + uPic + '\'' +
+				", utInterest='" + utInterest + '\'' +
+				'}';
+	}
+	public String toJSONString(){
+		return "{\"utId\":\""+utId+"\"," +
+				"\"utAddr\":\"" + utAddr + "\"," +
+				"\"utPro\":\"" + utPro + "\"," +
+				"\"utEdu\":\"" + utEdu + "\"," +
+				"\"utSkill\":\"" + utSkill + "\"," +
+				"\"utInterest\":" + utInterest +"," +
+				"\"context\": {\n" +
+				"        \"prinvice\": \"ËÄ´¨\",\"city\": \"³É¶¼\",\n" +
+				"        \"time\": \""+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(System.currentTimeMillis()))+"\"\n" +
+				"    }"+
+				"}";
 	}
 }

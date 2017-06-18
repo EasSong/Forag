@@ -144,10 +144,10 @@
         }
         skillList.innerHTML = tempHtml;
         tempHtml = "";
-        for (var i = 0; i < interestList.length; i++){
+        for (var i in userInterest){
             tempHtml += "<button type='button' class='btn "+labelColor[count++%labelColor.length]+"' style='padding: 0 2px;margin-right: 5px' onclick='deleteTag(this)'>"
-                +userInterest[i]+"</button>";
-            arrTags.push(userInterest[i]);
+                +i+"</button>";
+            arrTags.push(i);
         }
         interestList.innerHTML = tempHtml;
     }
@@ -158,10 +158,10 @@
         }
         var parentElement = obj.parentElement;
         parentElement.removeChild(obj);
-        arrTags.removeByValue(obj.innerHTML);
+        arrTags = removeByValue(obj.innerHTML,arrTags);
     }
     function addTagToNowTagList(obj) {
-        if (arrTags.contains(obj.innerHTML)){
+        if (contains(obj.innerHTML,arrTags)){
             alert("不能重复添加");
             return;
         }
@@ -170,6 +170,7 @@
             +obj.innerHTML+"</button>";
         parentPNode.innerHTML += tempHtml;
         arrTags.push(obj.innerHTML);
+        submitUserInterest();
     }
     function searchTagListByLikeName() {
         var tagName = document.getElementById("input-tag-name").value;
@@ -180,6 +181,17 @@
             data:"type=search&tagName="+tagName,
             success:function (tagList) {
                 setHotTag(tagList);
+            }
+        });
+    }
+    function submitUserInterest(){
+        $.ajax({
+            type:"POST",
+            url:"/ShowInforEdit",
+            dataType:"json",
+            data:"type=interest&interest="+arrTags.toString(),
+            success:function (data) {
+                alert("提交成功");
             }
         });
     }
