@@ -21,6 +21,7 @@ public class MySocket {
             OutputStream out = socket.getOutputStream();
 //            OutputStreamWriter osw = new OutputStreamWriter(out,"UTF-8");
 //            PrintWriter pw = new PrintWriter(osw);
+            System.out.println("param: "+param);
             out.write(param.getBytes("UTF-8"));
             out.flush();
             socket.shutdownOutput();
@@ -29,7 +30,7 @@ public class MySocket {
             BufferedReader br = new BufferedReader(isr);
             String info = null;
             while((info=br.readLine()) != null){
-                System.out.println("Service Information"+info);
+                System.out.println("Service Information:"+info);
                 jsonData = JSONObject.fromObject(info);
             }
             br.close();
@@ -67,10 +68,10 @@ public class MySocket {
         }
     }
 
-    public static JSONArray getUserInterestMsg(UserBean userBean, int len){
-        JSONArray logArr = new UserLogImpl().readUserLogForSocket(String.valueOf(userBean.getUtId()),0,len);
+    public static JSONArray getUserInterestMsg(UserBean userBean, int len, int history){
+        JSONObject logJson = new UserLogImpl().readUserLogForSocket(String.valueOf(userBean.getUtId()),0,len,history);
         String jsonStr = userBean.toJSONString();
-        String param = "{\"name\":\"getUserInterestPage\",\"params\":{\"user\":"+JSONObject.fromObject(jsonStr)+",\"log\":"+logArr.toString()+",\"len\":\""+len+"\"}}";
+        String param = "{\"name\":\"getUserInterestPage\",\"params\":{\"user\":"+JSONObject.fromObject(jsonStr)+",\"log\":"+logJson.toString()+",\"len\":\""+len+"\"}}";
         JSONObject jsonObject = runSocket(param);
         if (jsonObject.getString("state").equals("success")){
             return jsonObject.getJSONArray("result");

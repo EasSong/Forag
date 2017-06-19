@@ -8,6 +8,7 @@ import cuit.model.UserBean;
 import cuit.service.MessageService;
 import cuit.service.UserService;
 import cuit.util.AppUtil;
+import cuit.util.ConstantDeclare;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -43,14 +44,50 @@ public class UserLogImpl implements UserLog {
         //日志文件路径
         String userEmail = userBean.getUtMail();
         String logFileName = userEmail.split("@")[0] + "-behavior.log";
-        if (!LogRandomFileUtil.createLogFile(logFileName)) {
-            System.out.println("The file is exist!");
+        if (LogRandomFileUtil.createLogFile(logFileName)) {
+            System.out.println("info: create file is success, file name: "+logFileName);
         }
-        //日志信息
         logInfo.setDate(timeStr);
-        int codeState = LogRandomFileUtil.writeUserLog(logFileName, logInfo.toString());
-
+        int codeState = ConstantDeclare.ERROR_WRITE_LOG;
+        try {
+            if (checkUserLog(readUserLog(uId),logInfo,20,1)) {
+                //日志信息
+                codeState = LogRandomFileUtil.writeUserLog(logFileName, logInfo.toString());
+            }else{
+                System.out.println("error: Write in logfile error, log information:"+logInfo.toString());
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         return codeState;
+    }
+    /*
+    检查日志是不是重复产生
+    参数：   oldLogList      老日志列表
+            logInfo         新日志
+            compareLength   比较长度
+            delayDays       延时时间,以天为单位
+    返回值： true   没有重复，能够写入日志文件
+            false  有重复，不能写入日志文件
+     */
+    public boolean checkUserLog(List<String> oldLogList, LogInfo logInfo, int compareLength, int delayDays) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        for (int i = oldLogList.size()-1; i > 0; i--){
+            if (oldLogList.size() - i > compareLength){
+                break;
+            }
+            String[] items = oldLogList.get(i).split("-1b1-");
+            if (daysBetween(dateFormat.parse(items[0]),dateFormat.parse(dateFormat.format(new Date(System.currentTimeMillis())))) > delayDays){
+                break;
+            }
+            if (items[1].equals(logInfo.getLogType()) && items[4].equals(logInfo.getmId())){
+                if (!items[1].equals("comment")) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -85,7 +122,7 @@ public class UserLogImpl implements UserLog {
         Date nowDate = new Date(System.currentTimeMillis());
         MessageService messageService = AppUtil.getMessageService();
         try {//比较当前日期和最近一条日志的时间
-            if (dateFormat.format(dateTimeFormat.parse(listLog.get(listLog.size() - 1).split("-1b1-")[0])).equals(dateFormat.format(nowDate))) {
+            if (listLog.size()>1 && dateFormat.format(dateTimeFormat.parse(listLog.get(listLog.size() - 1).split("-1b1-")[0])).equals(dateFormat.format(nowDate))) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("type", "date");
                 jsonObject.put("date", dateFormat.format(nowDate));
@@ -114,7 +151,7 @@ public class UserLogImpl implements UserLog {
             String logTime = "";
             if (!logDate.equals(dateFormat.format(nowDate))) {
                 try {
-                    logTime = daysBetween(dateFormat.parse(logDate), nowDate) + "days ago";
+                    logTime = String.valueOf(daysBetween(dateFormat.parse(logDate), nowDate)) + "days ago";
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -136,7 +173,7 @@ public class UserLogImpl implements UserLog {
                 logItem.put("title", messageBean.getmTitle());
                 logJsonArr.add(logItem);
             } else {
-                System.err.println("日志类型出错: " + logItems[1]);
+                System.err.println("Error: Log type error: " + logItems[1]);
             }
         }
 
@@ -144,7 +181,7 @@ public class UserLogImpl implements UserLog {
     }
 
     //计算两个日期相差多少天
-    private String daysBetween(Date smdate, Date bdate) throws ParseException {
+    private long daysBetween(Date smdate, Date bdate) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         smdate = sdf.parse(sdf.format(smdate));
         bdate = sdf.parse(sdf.format(bdate));
@@ -155,31 +192,45 @@ public class UserLogImpl implements UserLog {
         long time2 = cal.getTimeInMillis();
         long between_days = (time2 - time1) / (1000 * 3600 * 24);
 
-        return String.valueOf(between_days);
+        return between_days;
     }
 
-    public JSONArray readUserLogForSocket(String uId, int offsetLength, int maxLength){
+    public JSONObject readUserLogForSocket(String uId, int offsetLength, int maxLogLength, int historyLength){
         List<String> listLog = readUserLog(uId);
-        JSONArray logArr = new JSONArray();
+        JSONObject logJson = new JSONObject();//log info
+        JSONArray logArr = new JSONArray();//log
+        JSONArray hisArr = new JSONArray();//history mid
         int offsetCount = 0;
         int logCount = 0;
+        int historyCount = 0;
 
         for (int i = listLog.size() - 1; i >= 1; i--){
             if (offsetCount++ < offsetLength){
                 continue;
             }
-            if (logCount++ > maxLength){
+            if (historyCount++ > historyLength){
                 break;
             }
             String[] logItems = listLog.get(i).split("-1b1-");
-            JSONObject logInfo = new JSONObject();
-            logInfo.put("time",logItems[0]);
-            logInfo.put("logType",logItems[1]);
-            logInfo.put("msgId",logItems[4]);
-            logInfo.put("msgTags",logItems[5]);
-            logArr.add(logInfo);
+            if (logItems[1].equals("recommend")){
+                logCount = maxLogLength+1;
+            }else {
+                hisArr.add(logItems[4]);
+            }
+            if (logCount++ <= maxLogLength) {
+                JSONObject logInfo = new JSONObject();
+                logInfo.put("time", logItems[0]);
+                logInfo.put("logType", logItems[1]);
+                logInfo.put("msgId", logItems[4]);
+                logInfo.put("msgTags", logItems[5]);
+                logInfo.put("msgSource",logItems[6]);
+                logArr.add(logInfo);
+            }
         }
+        logJson.put("data",logArr);
+        logJson.put("history",hisArr);
+        writeUserLog(uId,new LogInfo("","recommend","null","null","{}","null","null"));
 
-        return logArr;
+        return logJson;
     }
 }

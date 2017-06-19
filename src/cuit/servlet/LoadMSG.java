@@ -30,9 +30,6 @@ public class LoadMSG extends HttpServlet {
         String type = request.getParameter("type");
         JSONObject jsonData = new JSONObject();
         String changeState = request.getParameter("ChangeState");
-        //以xxxx-xx-xx（年-月-日）的方式获取当前日期
-        Date date = new Date(System.currentTimeMillis());
-        String nowDateStr = date.toString();
         //获取当前热门的标签的id
         JSONObject tagJson = MySocket.getHotTags(0, 10);
         request.getSession().setAttribute("hotTag", tagJson);
@@ -82,7 +79,7 @@ public class LoadMSG extends HttpServlet {
                     if (tag.equals(hot)) {
                         msgArr = MySocket.getHotMsgIntro(ip, 8, 0);
                     } else if (tag.equals(recommend)) {
-                        msgArr = MySocket.getUserInterestMsg((UserBean)request.getSession().getAttribute("userShowInfor"),8);
+                        msgArr = MySocket.getUserInterestMsg((UserBean)request.getSession().getAttribute("userShowInfor"),50,100);
                     } else {
                         msgArr = MySocket.getMsgIntroByTag(tag, ip, 8, 0);
                     }
@@ -93,25 +90,7 @@ public class LoadMSG extends HttpServlet {
                     }
                     jsonArrTag.add(tag);
                     JSONObject jsonObjMSG = new JSONObject();
-                    JSONArray jsonArray = new JSONArray();
-                    //封装文章信息
-                    for (int k = 0; k < msgArr.size(); k++) {
-                        JSONArray msg = msgArr.getJSONArray(k);
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("mId", msg.getString(0));
-                        jsonObject.put("mTime", msg.getString(6));
-                        String msgTag = msg.getString(4);
-                        jsonObject.put("mTagData", msgTag.substring(1, msgTag.length() - 1));
-                        jsonObject.put("mTitle", msg.getString(1));
-                        jsonObject.put("mIntro", msg.getString(2));
-                        jsonObject.put("mPic", msg.getString(3));
-                        jsonObject.put("mLikeCount", msg.getInt(7));
-                        jsonObject.put("mCommentCount", commentService.selectCommentCountByMId(msg.getInt(0)));
-                        jsonObject.put("mDislikeCount", msg.getInt(8));
-                        jsonObject.put("mCollectCount", msg.getInt(9));
-                        jsonObject.put("mTransmitCount", msg.getInt(10));
-                        jsonArray.add(jsonObject);
-                    }
+                    JSONArray jsonArray = MyUtil.getMsgJsonArr(commentService, msgArr);
                     jsonObjMSG.put("count", jsonArray.size());
                     jsonObjMSG.put("data", jsonArray);
                     jsonObjMSGs.add(jsonObjMSG);
@@ -126,6 +105,7 @@ public class LoadMSG extends HttpServlet {
         System.out.println(jsonData.toString());
         response.getWriter().print(jsonData.toString());
     }
+
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doPost(request, response);

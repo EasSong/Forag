@@ -35,6 +35,7 @@ public class SubmitComment extends HttpServlet {
         String mId = request.getParameter("mId");
         String cRoot_Id = request.getParameter("cRoot_Id");
         String objName = request.getParameter("objName");
+        String msgSource = request.getParameter("mSource");
         HttpSession session = request.getSession();
         UserBean userBean = (UserBean) session.getAttribute("userShowInfor");
         String uId = String.valueOf(userBean.getUtId());
@@ -52,7 +53,7 @@ public class SubmitComment extends HttpServlet {
         ArrayList<CommentBean> listCommentBean = commentService.selectByMId(Integer.parseInt(mId));
         PrintWriter out = response.getWriter();
         JSONObject jsonData = new JSONObject();
-        System.out.println(context);
+        System.out.println("Info: User("+userBean.getUtName()+") submit comment:"+context);
         if (state == ConstantDeclare.ERROR_COMMENT_INSERT){
             jsonData.put("state","errorComment");
             jsonData.put("commentData","errorComment");
@@ -62,7 +63,7 @@ public class SubmitComment extends HttpServlet {
             UserLog userLog = new UserLogImpl();
             Date date = new Date(System.currentTimeMillis());
             String mTags = request.getParameter("mTags");
-            LogInfo logInfo = new LogInfo(date.toString(),"comment",context,mId,mTags,objName);
+            LogInfo logInfo = new LogInfo(date.toString(),"comment",context,mId,mTags,objName,msgSource);
             userLog.writeUserLog(String.valueOf(userBean.getUtId()),logInfo);
             //封装评论信息，判断是否有，无则封装标记字符串(notComment)
             if (listCommentBean.size() > 0){

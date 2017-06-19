@@ -16,6 +16,7 @@ public interface MessageService {
     MessageBean selectById(int mId);
     ArrayList<MessageBean> selectAll();
     ArrayList<MessageBean> selectByTag(String tag);
+    int updateDisLikeCountById(int mId);
     int updateLikeCountById(int mId);
     int updateCollectCountById(int mId);
     int updateTransmitCountById(int mId);

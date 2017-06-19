@@ -1,6 +1,7 @@
 package cuit.util;
 
 import cuit.model.UserBean;
+import cuit.service.CommentService;
 import cuit.service.UserService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -50,7 +51,7 @@ public class MyUtil {
         JSONObject oldInterest = null;
         System.out.println(tmp);
         if (!tmp.equals("") && !tmp.equals("{}")){
-             oldInterest = JSONObject.fromObject(tmp);
+             oldInterest = JSONObject.fromObject(tmp).getJSONObject("tag");
         }else {
             oldInterest = new JSONObject();
         }
@@ -59,7 +60,10 @@ public class MyUtil {
                 oldInterest.put(str,"20");
             }
         }
-        userInfo.setUtInterest(oldInterest.toString());
+        JSONObject jsonObject = JSONObject.fromObject(userInfo.getUtInterest());
+        System.out.println(jsonObject.toString());
+        jsonObject.put("tag",oldInterest);
+        userInfo.setUtInterest(jsonObject.toString());
         userBean = userInfo;
         System.out.println(userBean.toString());
     }
@@ -77,5 +81,27 @@ public class MyUtil {
             tmp.append(",");
         }
         return tmp.toString().substring(0,tmp.toString().length()-1).split(",");
+    }
+    public static JSONArray getMsgJsonArr(CommentService commentService, JSONArray msgArr) {
+        JSONArray jsonArray = new JSONArray();
+        //封装文章信息
+        for (int k = 0; k < msgArr.size(); k++) {
+            JSONArray msg = msgArr.getJSONArray(k);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("mId", msg.getString(0));
+            jsonObject.put("mTime", msg.getString(6));
+            String msgTag = msg.getString(4);
+            jsonObject.put("mTagData", msgTag.substring(1, msgTag.length() - 1));
+            jsonObject.put("mTitle", msg.getString(1));
+            jsonObject.put("mIntro", msg.getString(2));
+            jsonObject.put("mPic", msg.getString(3));
+            jsonObject.put("mLikeCount", msg.getInt(7));
+            jsonObject.put("mCommentCount", commentService.selectCommentCountByMId(msg.getInt(0)));
+            jsonObject.put("mDislikeCount", msg.getInt(8));
+            jsonObject.put("mCollectCount", msg.getInt(9));
+            jsonObject.put("mTransmitCount", msg.getInt(10));
+            jsonArray.add(jsonObject);
+        }
+        return jsonArray;
     }
 }

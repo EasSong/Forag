@@ -141,6 +141,28 @@ public class MessageDaoImpl implements MessageDao {
         return stateCode;
     }
     /*
+        更新一个文章的不喜欢数
+        参数：文章ID  mId
+        返回：更新结果编码
+         */
+    @Override
+    public int updateDisLikeCountById(int mId) {
+        int stateCode = ConstantDeclare.ERROR_DB_ERROR;
+
+        Session session = sessionFactory.getCurrentSession();
+        session.beginTransaction();
+        Query query = session.createQuery("update MessageBean m set m.mDislikeCount=m.mDislikeCount+1 where m.mId=?");
+        query.setParameter(0,mId);
+        int state = query.executeUpdate();
+        if (state <= 0){
+            stateCode = ConstantDeclare.ERROR_UPDATE_LIKE;
+        }
+        session.getTransaction().commit();
+
+        return stateCode;
+    }
+
+    /*
         更新一个文章的收藏数
         参数：文章ID  mId
         返回：更新结果编码

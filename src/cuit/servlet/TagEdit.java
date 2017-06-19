@@ -32,6 +32,7 @@ public class TagEdit extends HttpServlet{
             String tagName = request.getParameter("tagName");
             TagService tagService = AppUtil.getTagService();
             ArrayList<String> tagArr = tagService.getTagListByLikeName(tagName);
+            System.out.println("Info: user search tag list, tag name: "+tagName);
             out.print(JSONArray.fromObject(tagArr));
         }
     }

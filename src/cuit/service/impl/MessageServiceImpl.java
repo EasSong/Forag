@@ -54,7 +54,10 @@ public class MessageServiceImpl implements MessageService {
     public int updateLikeCountById(int mId) {
         return messageDao.updateLikeCountById(mId);
     }
-
+    @Override
+    public int updateDisLikeCountById(int mId){
+        return messageDao.updateDisLikeCountById(mId);
+    }
     @Override
     public int updateCollectCountById(int mId) {
         return messageDao.updateCollectCountById(mId);

@@ -46,27 +46,37 @@ function reComposing(tabContentId) {
             //统一设置为active,否则会出现没有active class的元素不能够重新排版成功
             tabContents[i].className = "tab-pane active";
             var height = reSetColPosition(colList);
-            tabContents[i].style.height = height + "px";
+            tabContents[i].style.height = (height+20) + "px";
+            tabContents[i].children[1].style.marginTop = (height-10)+"px";
             tabContents[i].className = tempDisplay;
         }
     }
 }
 function reSetColPosition(colList) {
-    var posHeightArr = [0,0];
-    var colWidth = (document.documentElement.clientWidth - 40)/2 - 20;
-    var startHeight = 50 + document.getElementById("carousel-inner-img").offsetHeight + 20;
+    var windowWidth = document.documentElement.clientWidth;
+    var posHeightArr = new Array(parseInt(windowWidth/500+1));
+    initArr(posHeightArr);
+    var colWidth = windowWidth / posHeightArr.length - 10;
+    var offsetWidth = (windowWidth - posHeightArr.length * colWidth)/(posHeightArr.length + 1);
+    var startHeight = 50 + document.getElementById("carousel-inner-img").offsetHeight + document.getElementById("top-tag-nav-ul").offsetHeight - 20;
     for (var i = 0; i < colList.length; i++){
         var minIndex = getMinOrMaxIndex(posHeightArr,"min");
         //alert("index="+minIndex+",posHeight="+posHeightArr[minIndex]);
         //alert(colList[i].innerHTML);
         colList[i].style.position = "absolute";
-        colList[i].style.width = (colWidth - 10) + "px";
-        colList[i].style.left = (30 + minIndex * colWidth)+"px";
+        colList[i].style.width = colWidth + "px";
+        colList[i].style.left = (offsetWidth + minIndex * colWidth)+"px";
         colList[i].style.top = (startHeight + posHeightArr[minIndex])+"px";
         posHeightArr[minIndex] += colList[i].offsetHeight;
         //alert("index="+minIndex+",posHeight="+posHeightArr[minIndex]);
     }
     return posHeightArr[getMinOrMaxIndex(posHeightArr,"max")];
+}
+function initArr(arr) {
+    for (var i = 0; i < arr.length; i++){
+        arr[i] = 0;
+    }
+    return arr;
 }
 function getMinOrMaxIndex(posArr,type) {
     var minIndex = 0;

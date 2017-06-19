@@ -18,6 +18,7 @@ public interface MessageDao {
     ArrayList<MessageBean> selectAll();
     ArrayList<MessageBean> selectByTag(String tag);
     int updateLikeCountById(int mId);
+    int updateDisLikeCountById(int mId);
     int updateCollectCountById(int mId);
     int updateTransmitCountById(int mId);
     String selectHotTagByDate(String nowDate);

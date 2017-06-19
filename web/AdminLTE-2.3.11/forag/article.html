@@ -44,6 +44,7 @@
     var commentNodeCount;//子级评论总数
     var commentRootCount;//根评论总数
     var msgTags;//保存文章标签
+    var msgSource;//保存文章源地址
     var xmlHttp;
     function LoadingMsgDetail() {
         if (location.search == ""){
@@ -68,7 +69,8 @@
                 var msg = jsonData.MSG;
                 var state = jsonData.state;
                 var userInfo = jsonData.userInfo;
-                msgTags = JSON.stringify(msg.mTags) ;
+                msgTags = JSON.stringify(msg.mTags);
+                msgSource = msg.mSource;
                 commentNodeCount = jsonData.nodeCommentCount;
                 commentRootDataArray = jsonData.commentRootData;
                 commentNodeDataArray = jsonData.commentNodeData;
@@ -91,7 +93,7 @@
                 //document.getElementById("art-msg-head").innerHTML=msg.mTitle;
                 document.getElementById("art-msg-context").innerHTML = msg.mContext;
                 document.getElementById("like-count").innerHTML = msg.mLike_count;
-                document.getElementById("comment-count").innerHTML = commentRootCount;
+                document.getElementById("comment-count").innerHTML = ((commentRootCount == undefined || commentRootCount == "undefined")?"0":commentRootCount);
                 setCommentFunc();
                 setTagsStyle();
             }
@@ -155,7 +157,7 @@
         xmlHttp.open("POST",url,true);
         xmlHttp.onreadystatechange=submitCommentCallback;
         xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-        xmlHttp.send("cParent_id="+cParent_id+"&context="+textValue+"&mId="+msg_id+"&cRoot_Id="+cRoot_id+"&mTags="+msgTags+"&objName="+objName);
+        xmlHttp.send("cParent_id="+cParent_id+"&context="+textValue+"&mId="+msg_id+"&cRoot_Id="+cRoot_id+"&mTags="+msgTags+"&objName="+objName+"&mSource="+msgSource);
     }
     function submitCommentCallback() {
         //4代表完成
@@ -181,12 +183,13 @@
     }
     function setCommentFunc() {
         var boxComments = document.getElementById("box-comments");
-        if (commentRootCount <= 0){
+        if (commentRootCount <= 0 || commentRootCount == undefined || commentRootCount == "undefined"){
             boxComments.innerHTML = "<span class='comment-text' style='text-align: center'>还没有评论！</span>";
         }
         else{
             setNowPageCommentFunc()
         }
+        setSpanTagsStyle("item-tag");
     }
     function setNowPageCommentFunc() {
         var boxComments = document.getElementById("box-comments");
@@ -261,7 +264,6 @@
             +"</div>";
         }
         boxComments.innerHTML = tempHTML;
-        setSpanTagsStyle("item-tag");
     }
     function setNowPageParameters(obj) {
         var rootUlNode = obj.parentNode.parentNode.getElementsByTagName("li");
@@ -330,18 +332,56 @@
         cRoot_id = cRootId;
         submitComment(textValue);
     }
-    function clickFaOUp(obj) {
+    function clickLike(obj) {
         if (obj.style.backgroundColor == "rgb(0, 166, 90)"){
             return;
         }
         obj.style.backgroundColor = "#00a65a";
-        obj.childNodes[0].style.fontColor = "#FFFFFF";
+        obj.style.fontColor = "#FFFFFF";
         xmlHttp = createXMLHttp();
         var url = "/MsgEdit";
         xmlHttp.open("POST",url,true);
         xmlHttp.onreadystatechange=clickFaOUpCallback;
         xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-        xmlHttp.send("type=like&mId="+msg_id+"&uId="+login_flag+"&mTags="+msgTags);
+        xmlHttp.send("type=like&mId="+msg_id+"&uId="+login_flag+"&mTags="+msgTags+"&mSource="+msgSource);
+    }
+    function clickDisLike(obj) {
+        if (obj.style.backgroundColor == "rgb(221, 75, 57)"){
+            return;
+        }
+        obj.style.backgroundColor = "#DD4B39";
+        obj.style.fontColor = "#FFFFFF";
+        xmlHttp = createXMLHttp();
+        var url = "/MsgEdit";
+        xmlHttp.open("POST",url,true);
+        xmlHttp.onreadystatechange=clickFaOUpCallback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("type=dislike&mId="+msg_id+"&uId="+login_flag+"&mTags="+msgTags+"&mSource="+msgSource);
+    }
+    function clickShare(obj) {
+        if (obj.style.backgroundColor == "rgb(57, 204, 204)"){
+            return;
+        }
+        obj.style.backgroundColor = "#39CCCC";
+        xmlHttp = createXMLHttp();
+        var url = "/MsgEdit";
+        xmlHttp.open("POST",url,true);
+        xmlHttp.onreadystatechange=clickFaOUpCallback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("type=share&mId="+msg_id+"&uId="+login_flag+"&mTags="+msgTags+"&mSource="+msgSource);
+    }
+    function clickCollect(obj) {
+        if (obj.style.backgroundColor == "rgb(57, 204, 204)"){
+            return;
+        }
+        obj.style.backgroundColor = "#39CCCC";
+        obj.style.fontColor = "#FFFFFF";
+        xmlHttp = createXMLHttp();
+        var url = "/MsgEdit";
+        xmlHttp.open("POST",url,true);
+        xmlHttp.onreadystatechange=clickFaOUpCallback;
+        xmlHttp.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xmlHttp.send("type=collect&mId="+msg_id+"&uId="+login_flag+"&mTags="+msgTags+"&mSource="+msgSource);
     }
     function clickFaOUpCallback() {
         //4代表完成
@@ -349,14 +389,16 @@
             //200代表服务器响应成功，404代表资源未找到，500服务器内部错误
             if (xmlHttp.status == 200) {
                 //交互成功获得响应的数据，是文本格式,并解析
-                var xmlResult = xmlHttp.responseText;
-                if (xmlResult == "successUpdateLikeCount"){
-                    alert("点赞成功！");
-                    var likeCount = document.getElementById("like-count").innerHTML;
-                    document.getElementById("like-count").innerHTML = parseInt(likeCount)+1;
+                var xmlResult = xmlHttp.responseText.split(",");
+                if (xmlResult[1] == "success"){
+                    alert("操作成功！");
+                    if (xmlResult[0] == "like") {
+                        var likeCount = document.getElementById("like-count").innerHTML;
+                        document.getElementById("like-count").innerHTML = parseInt(likeCount) + 1;
+                    }
                 }
-                else if (xmlResult == "errorUpdateLikeCount"){
-                    alert("点赞失败！");
+                else{
+                    alert("操作失败！");
                 }
             }
         }
@@ -539,8 +581,10 @@
             <!--<h2 style="text-align: center" id="art-msg-head">I took this photo this morning. What do you guys think</h2><br/><br/>-->
             <p id="art-msg-context">I took this photo this morning. What do you guys think?</p>
             <div class="overlay" id="over-lay"><i class="fa fa-refresh fa-spin"></i></div>
-            <button type="button" class="btn btn-default btn-xs"><i class="fa fa-share"></i> Share</button>
-            <button type="button" class="btn btn-default btn-xs" id="btn-fa-thumbs-o-up" onclick="clickFaOUp(this)"><i class="fa fa-thumbs-o-up"></i> Like</button>
+            <button type="button" class="btn btn-default btn-xs" id="btn-fa-share" onclick="clickShare(this)"><i class="fa fa-share"></i> Share</button>
+            <button type="button" class="btn btn-default btn-xs" id="btn-fa-thumbs-o-up" onclick="clickLike(this)"><i class="fa fa-thumbs-o-up"></i> Like</button>
+            <button type="button" class="btn btn-default btn-xs" id="btn-fa-thumbs-o-down" onclick="clickDisLike(this)"><i class="fa fa-thumbs-o-down"></i> Dislike</button>
+            <button type="button" class="btn btn-default btn-xs" id="btn-fa-star-o" onclick="clickCollect(this)"><i class="fa fa-star-o"></i> Collect</button>
             <span class="pull-right text-muted"><span id="like-count">127</span> likes - <span id="comment-count">3</span> comments</span> </div>
           <!-- /.box-body -->
           <div class="box-footer box-comments" id="box-comments">

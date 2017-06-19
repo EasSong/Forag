@@ -59,7 +59,7 @@ public class LoadArticle extends HttpServlet {
             jsonData.put("userInfo",jsonObject);
             UserLog userLog = new UserLogImpl();
             Date date = new Date(System.currentTimeMillis());
-            LogInfo logInfo = new LogInfo(date.toString(),"browse","browse msg",mid,messageBean.getmTags(),"null");
+            LogInfo logInfo = new LogInfo(date.toString(),"browse","browse msg",mid,messageBean.getmTags(),"null",messageBean.getmSource());
             userLog.writeUserLog(String.valueOf(userBean.getUtId()),logInfo);
         }
         //封装文章(Message)信息

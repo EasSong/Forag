@@ -46,9 +46,12 @@
 <script>
     //全局颜色标签
     var boxColor = ["box-primary","box-danger","box-success","box-info"];
-    var liColor = ["bg-info","bg-green","bg-teal"];
+    var labelColor = ["label-success","label-info","label-primary","label-warning","label-danger"];
+    //var liColor = ["bg-info","bg-green","bg-teal"];
     var btnColors = ["btn-primary","btn-danger","btn-success","btn-info","btn-warning"]
     /*全局对象*/
+    //保存当前用户id
+    var uId = -1;
     //保存当前页面标签
     var arrTags = [];
     //HTTP对象
@@ -83,6 +86,7 @@
                     topLinkUl.style.display = "none";
                     topUserInforUl.style.display = "inline";
                     var userInfor = temp.userInfor;
+                    uId = userInfor.uId;
                     document.getElementById("profile-user-name").innerHTML = userInfor.uName;
                     document.getElementById("profile-user-name-hidden").innerHTML = userInfor.uName;
                     LoadMSG("type=special&ChangeState=noChange&hot=热门&user=推荐");
@@ -140,6 +144,54 @@
         xmlHttp.send(data);
     }
     var hotTagName = "";
+    function setMsgTabContent(msgCount, data) {
+        var temp = "";
+        for (var i = 0; i < msgCount; i++) {
+            temp += "<div class='col-md-6'>"
+                + "<div class='tab-pane active' id='new" + i + "'>"
+                + "<div class='box box-widget' style='margin-top:10px;'>"
+                + "<div class='box " + boxColor[i % boxColor.length] + " box-header'>"
+                + "<h5 class='box-title' style='font-size:14px;'><a class='black_link_color' href='article.html?mId=" + data[i].mId + "'>" + data[i].mTitle + "</a></h5>"
+                + "</div>"
+                + "<div class='box-body'>";
+            var t = "style='width:100%'";
+            //alert(data[i].mPic)
+            if (data[i].mPic != "" && data[i].mPic != null && data[i].mPic != undefined && data[i].mPic != "None" && data[i].mPic != "http://himg2.huanqiu.com/statics/images/more-icoCopy.png") {
+                temp += "<div class='col-md-6'> " +
+                    <!--pic url->data[i].mPicUri -->
+                    "<img src='" + data[i].mPic + "' class='img-responsive'/> </div>";
+                t = "class='col-md-6'";
+            }
+            temp += "<div " + t + ">"
+                + "<p style='margin-top:5px;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + ((data[i].mIntro == "None") ? "" : data[i].mIntro) + "</p>"
+                + "</div>"
+                + "</div>"
+                + "<div class='box-footer'>"
+                + "<ul class='list-inline' style='margin-bottom:0px;'>";
+            var tagData = (data[i].mTagData).tag;
+            //var tagId = tagData.tagId;
+            //var tagName = tagData.tagName;
+            //var tagWeight = tagData.tagWeight;
+            // 5.17修改之处
+            var count = 0;
+            for (var tagName in tagData) {
+                temp += "<li> " +
+                    "<a href='#'>" +
+                    "<span class='label " + labelColor[count++ % labelColor.length] + "'>" + tagName + "</span>" +
+                    "</a> " +
+                    "</li>";
+            }
+            temp += "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-share margin-r-5'></i>" + data[i].mTransmitCount + "</a></li>"
+                + "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-thumbs-o-up margin-r-5'></i>" + data[i].mLikeCount + "</a> </li>"
+                + "<li class='pull-right'> <a href='#' class='link-black text-sm'><i class='fa fa-comments-o margin-r-5'></i>" + data[i].mCommentCount + "</a></li>"
+                + "</ul>"
+                + "</div>"
+                + "</div>"
+                + "</div>"
+                + "</div>"
+        }
+        return {temp: temp, i: i, t: t, tagData: tagData, count: count};
+    }
     function LoadMSGCallback() {
         //4代表完成
         if (xmlHttp.readyState == 4) {
@@ -221,60 +273,58 @@
                         continue;
                     }
                     var data = datas[m].data;
-                    var temp = "";
-                    for (var i = 0; i < msgCount; i++) {
-                        temp += "<div class='col-md-6'>"
-                            + "<div class='tab-pane active' id='new" + i + "'>"
-                            + "<div class='box box-widget' style='margin-top:10px;'>"
-                            + "<div class='box " + boxColor[i % boxColor.length] + " box-header'>"
-                            + "<h5 class='box-title' style='font-size:14px;'><a class='black_link_color' href='article.html?mId=" + data[i].mId + "'>" + data[i].mTitle + "</a></h5>"
-                            + "</div>"
-                            + "<div class='box-body'>";
-                        var t = "style='width:100%'";
-                        //alert(data[i].mPic)
-                        if (data[i].mPic != "" && data[i].mPic != null && data[i].mPic != undefined && data[i].mPic != "None" && data[i].mPic != "http://himg2.huanqiu.com/statics/images/more-icoCopy.png") {
-                            temp += "<div class='col-md-6'> " +
-                                <!--pic url->data[i].mPicUri -->
-                                "<img src='"+data[i].mPic+"' class='img-responsive'/> </div>";
-                            t = "class='col-md-6'";
+                    if (nowHotTags[m] == "热门"){
+                        var tabImage = 0;
+                        var tabImageDivNodes = document.getElementById("carousel-inner-img").children;
+                        for (var k = 0; k < data.length; k++) {
+                            if (tabImage>=3){
+                                break;
+                            }
+                            var pic = data[k].mPic;
+                            if (pic != "" && pic != null && pic != undefined && pic != "None" && pic != "http://himg2.huanqiu.com/statics/images/more-icoCopy.png") {
+                                //tabImageDivNodes[tabImage].children[0].children[0].src = pic;
+                                tabImageDivNodes[tabImage].children[0].href = "article.html?mId="+data[k].mId;
+                                tabImageDivNodes[tabImage].children[1].children[0].innerHTML = data[k].mTitle;
+                                tabImageDivNodes[tabImage].children[1].children[1].innerHTML = ((data[k].mIntro=="" || data[k].mIntro =="None")?"":data[k].mIntro);
+                                tabImage++;
+                            }
                         }
-                        temp += "<div " + t + ">"
-                            + "<p style='margin-top:5px;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + ((data[i].mIntro=="None")?"":data[i].mIntro) + "</p>"
-                            + "</div>"
-                            + "</div>"
-                            + "<div class='box-footer'>"
-                            + "<ul class='list-inline' style='margin-bottom:0px;'>";
-                        var tagData = (data[i].mTagData).tag;
-                        //var tagId = tagData.tagId;
-                        //var tagName = tagData.tagName;
-                        //var tagWeight = tagData.tagWeight;
-                        // 5.17修改之处
-                        var count = 0;
-                        for (var tagName in tagData) {
-                            temp += "<li> " +
-                                "<a href='#' class='link-black text-sm'>" +
-                                "<i class='margin-r-5'>" +
-                                "<span class='badge " + liColor[count++ % liColor.length] + "'>"+tagName+"</span>" +
-                                "</i>" +
-                                "</a> " +
-                                "</li>";
-                        }
-                        temp += "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-share margin-r-5'></i>" + data[i].mTransmitCount + "</a></li>"
-                            + "<li class='pull-right'><a href='#' class='link-black text-sm'><i class='fa fa-thumbs-o-up margin-r-5'></i>" + data[i].mLikeCount + "</a> </li>"
-                            + "<li class='pull-right'> <a href='#' class='link-black text-sm'><i class='fa fa-comments-o margin-r-5'></i>" + data[i].mCommentCount + "</a></li>"
-                            + "</ul>"
-                            + "</div>"
-                            + "</div>"
-                            + "</div>"
-                            + "</div>"
                     }
+                    var __ret = setMsgTabContent(msgCount, data);
+                    var temp = __ret.temp;
+                    var i = __ret.i;
+                    var t = __ret.t;
+                    var tagData = __ret.tagData;
+                    var count = __ret.count;
                     tempTabContentHtml += temp;
-                    tempTabContentHtml += "</div></div>";
+                    tempTabContentHtml += "</div><div>" +
+                        "<a href='#' class='btn btn-block btn-default' onclick='submitReadMore(this,\""+nowHotTags[m]+"\",0,10)'>" +
+                    "<i class='fa fa-angle-double-down' style='font-size: 18px'></i>" +
+                    "</a></div>"+
+                    "</div>";
                 }
                 tabContents.innerHTML = tempTabContentHtml;
                 reComposing("tab-content-id");
             }
         }
+    }
+    function submitReadMore(obj,tagName,offset,len) {
+        //alert(tagName+","+offset+","+len);
+        var parent = obj.parentNode.parentNode.children[0];
+        $.ajax({
+            type:"POST",
+            url:"/LoadMoreMsg",
+            dataType:"json",
+            data:"tagName="+tagName+"&offset="+(offset+len)+"&len="+len+"&uId="+uId,
+            success:function (data) {
+                alert(data.count);
+                var __ret = setMsgTabContent(data.count,data.data);
+                obj.parentNode.innerHTML = "<a href='#' class='btn btn-block btn-default' onclick='submitReadMore(this,\""+data.tagName+"\","+data.offset+","+data.len+")'>" +
+                    "<i class='fa fa-angle-double-down' style='font-size: 18px'></i></a>";
+                parent.innerHTML += __ret.temp;
+                reComposing("tab-content-id");
+            }
+        });
     }
     //保存一下上次操作的数据，做一次撤销操作用
     var rollbackTagsList = "";
@@ -331,7 +381,6 @@
             }
         });
     }
-    var labelColor = ["label-success","label-info","label-primary","label-warning","label-danger"];
     function setHotTag(data) {
         var tempHtml = "";
         var hotTagList = document.getElementById("select-tags-a-span");
@@ -509,7 +558,8 @@
         <li data-slide-to="2" data-target="#hot_carousel"></li>
       </ol>
       <div class="carousel-inner" id="carousel-inner-img">
-        <div class="item active img-responsive"> <img alt="Carousel Bootstrap First" src="images/bb9dba34778496b36b42b115aba5565c.jpg">
+        <div class="item active img-responsive">
+          <a href="#" target="_blank"><img alt="Carousel Bootstrap First" src="images/3d27b00f92855f229477717d9a9b89c2.jpg" style="width: 100%"></a>
           <div class="carousel-caption">
             <h4>Second Thumbnail label</h4>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
@@ -517,7 +567,8 @@
               vehicula ut id elit.</p>
           </div>
         </div>
-        <div class="item img-responsive"> <img alt="Carousel Bootstrap Second" src="images/bb9dba34778496b36b42b115aba5565c.jpg">
+        <div class="item img-responsive">
+          <a href="#" target="_blank"><img alt="Carousel Bootstrap Second" src="images/13af9aff4105eaec49aedf7000690b5b.jpg" style="width: 100%"></a>
           <div class="carousel-caption">
             <h4>Second Thumbnail label</h4>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
@@ -525,7 +576,8 @@
               vehicula ut id elit.</p>
           </div>
         </div>
-        <div class="item img-responsive"> <img alt="Carousel Bootstrap Third" src="images/bb9dba34778496b36b42b115aba5565c.jpg">
+        <div class="item img-responsive">
+          <a href="#" target="_blank"><img alt="Carousel Bootstrap Third" src="images/c2a07e8ad30b7d214254fbb1c9159372.jpg" style="width: 100%"></a>
           <div class="carousel-caption">
             <h4>Third Thumbnail label</h4>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
@@ -721,6 +773,11 @@
                   </div>
                 </div>
               </div>
+            </div>
+            <div>
+              <a href="#" class="btn btn-block btn-default">
+                <i class="fa fa-angle-double-down" style="font-size: 18px"></i>
+              </a>
             </div>
           </div>
           <!-- /.tab-pane -->

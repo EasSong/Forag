@@ -3,10 +3,7 @@ package cuit.servlet;
 import cuit.model.UserBean;
 import cuit.service.MessageService;
 import cuit.service.UserService;
-import cuit.util.AppUtil;
-import cuit.util.ConstantDeclare;
-import cuit.util.MyUtil;
-import cuit.util.TaskTimer;
+import cuit.util.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -113,7 +110,7 @@ public class ShowInforEdit extends HttpServlet {
 				jsonUser.put("uEdu",userBean.getUtEdu());
 				jsonUser.put("uIntro",userBean.getUtIntro());
 				jsonUser.put("uSkill",userBean.getUtSkill());
-				jsonUser.put("uInterest",userBean.getUtInterest());
+				jsonUser.put("uInterest",JSONObject.fromObject(userBean.getUtInterest()).getString("tag"));
 				jsonObject.put("userInfor",jsonUser);
 				out.print(jsonObject.toString());
 			}
@@ -123,8 +120,8 @@ public class ShowInforEdit extends HttpServlet {
 			Date date = new Date(System.currentTimeMillis());
 			String nowDateStr = date.toString();
 			//获取当前热门的标签的id
-			ArrayList<String> hotTags = messageService.selectHotTagByDate(nowDateStr);
-			out.print(JSONArray.fromObject(hotTags));
+			JSONArray jsonArray = MySocket.getHotTags(0,10).getJSONArray("tags");
+			out.print(jsonArray);
 		}
 		else if (type.equals("interest")){
 			String userInterest = request.getParameter("interest");

@@ -121,14 +121,14 @@ public class LogRandomFileUtil {
             if (!file.exists()) {
                 if (file.createNewFile()) {
                     writeUserLog(logFileName, FILE_LOG_HEADER);
-                    System.out.println("File length:" + file.length());
+                    //System.out.println("File length:" + file.length());
                     return true;
                 } else {
-                    System.out.println("Make file " + fullFilePath + " failed!");
+                    //System.out.println("Make file " + fullFilePath + " failed!");
                     return false;
                 }
             } else {
-                System.out.println("The file:" + fullFilePath + "is exist.");
+                //System.out.println("The file:" + fullFilePath + "is exist.");
                 return false;
             }
         } catch (IOException e) {

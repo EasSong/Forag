@@ -10,14 +10,16 @@ public class LogInfo {
     private String objName;
     private String mId;
     private String mTags;
+    private String mSource;
 
-    public LogInfo(String date, String logType, String logContext,String mId,String mTags,String objName){
+    public LogInfo(String date, String logType, String logContext,String mId,String mTags,String objName,String msgSource){
         this.date = date;
         this.logType = logType;
         this.logContext = logContext;
         this.mId = mId;
         this.mTags = mTags;
         this.objName = objName;
+        this.mSource = msgSource;
     }
 
     public String getDate() {
@@ -68,8 +70,16 @@ public class LogInfo {
         this.objName = objName;
     }
 
+    public String getmSource() {
+        return mSource;
+    }
+
+    public void setmSource(String mSource) {
+        this.mSource = mSource;
+    }
+
     @Override
     public String toString() {
-        return date+"-1b1-"+logType+"-1b1-"+logContext+"-1b1-"+objName+"-1b1-"+mId+"-1b1-"+mTags+"\r\n";
+        return date+"-1b1-"+logType+"-1b1-"+logContext+"-1b1-"+objName+"-1b1-"+mId+"-1b1-"+mTags+"-1b1-"+mSource+"\r\n";
     }
 }

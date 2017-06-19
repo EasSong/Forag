@@ -16,7 +16,7 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">cuit.util.MyOracleDialect</prop>
-                <prop key="hibernate.show_sql">true</prop>
+                <!--<prop key="hibernate.show_sql">true</prop>-->
                 <prop key="hibernate.connection.driver_class">oracle.jdbc.driver.OracleDriver</prop>
                 <prop key="hibernate.connection.url"><!--10.18.50.229--><!-- 192.168.43.16 192.168.1.181-->
                     jdbc:oracle:thin:foragCollecter_1/foragCollecter@192.168.1.181:1521:orcl
