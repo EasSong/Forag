@@ -26,8 +26,10 @@ public class UserTimeLine extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         UserBean userInfo = (UserBean)request.getSession().getAttribute("userShowInfor");
+        int offset = Integer.parseInt(request.getParameter("offset"));
+        int len = Integer.parseInt(request.getParameter("len"));
         UserLogImpl userLog = new UserLogImpl();
-        JSONArray logJsonArr = userLog.readUserLogForTimeLine(String.valueOf(userInfo.getUtId()),0,10);
+        JSONArray logJsonArr = userLog.readUserLogForTimeLine(String.valueOf(userInfo.getUtId()),offset,len);
         PrintWriter out = response.getWriter();
         out.print(logJsonArr);
     }

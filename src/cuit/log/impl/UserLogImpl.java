@@ -1,5 +1,6 @@
 package cuit.log.impl;
 
+import com.sun.org.apache.xerces.internal.xs.StringList;
 import cuit.dao.UserDao;
 import cuit.log.UserLog;
 import cuit.model.LogInfo;
@@ -16,16 +17,14 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Esong on 2017/5/26.
  * 保存用户操作的日志
  */
 public class UserLogImpl implements UserLog {
+    private final String[] logTypeArr = {"browse","comment","like","dislike","collect","transmit"};
     @Override
     public int writeUserLog(String uId, LogInfo logInfo) {
         Date date = new Date();
@@ -110,7 +109,10 @@ public class UserLogImpl implements UserLog {
         return LogRandomFileUtil.readUserLog(logFileName);
     }
 
+    //记录上次读取的日志的时间
+    private static String oldDate = "";
     public JSONArray readUserLogForTimeLine(String uId, int offsetLength, int maxLength) {
+        ArrayList<String> listType = new ArrayList<>(Arrays.asList(logTypeArr));
         List<String> listLog = readUserLog(uId);
         listLog.remove(0);//移除第一条标题内容
         JSONArray logJsonArr = new JSONArray();//封装日志信息
@@ -122,21 +124,21 @@ public class UserLogImpl implements UserLog {
         Date nowDate = new Date(System.currentTimeMillis());
         MessageService messageService = AppUtil.getMessageService();
         try {//比较当前日期和最近一条日志的时间
-            if (listLog.size()>1 && dateFormat.format(dateTimeFormat.parse(listLog.get(listLog.size() - 1).split("-1b1-")[0])).equals(dateFormat.format(nowDate))) {
+            if (offsetLength == 0 && listLog.size() > 1 && dateFormat.format(dateTimeFormat.parse(listLog.get(listLog.size() - 1).split("-1b1-")[0])).equals(dateFormat.format(nowDate))) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("type", "date");
                 jsonObject.put("date", dateFormat.format(nowDate));
                 logJsonArr.add(jsonObject);
+                oldDate = dateFormat.format(nowDate);
             }
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
         for (int i = listLog.size() - 1; i >= 0; i--) {
             if (offset++ < offsetLength) {
                 continue;
             }
-            if (count++ > maxLength) {
+            if (count++ >= maxLength) {
                 break;
             }
             String[] logItems = listLog.get(i).split("-1b1-");
@@ -149,20 +151,24 @@ public class UserLogImpl implements UserLog {
                 e.printStackTrace();
             }
             String logTime = "";
-            if (!logDate.equals(dateFormat.format(nowDate))) {
-                try {
-                    logTime = String.valueOf(daysBetween(dateFormat.parse(logDate), nowDate)) + "days ago";
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+            if (logDate!=null && !logDate.equals(oldDate)) {
                 JSONObject jsonObject1 = new JSONObject();
                 jsonObject1.put("type", "date");
                 jsonObject1.put("date", logDate);
                 logJsonArr.add(jsonObject1);
-            } else {
+                oldDate = logDate;
+            }
+            if (logDate!=null && !logDate.equals(dateFormat.format(nowDate))){
+                try {
+                    logTime = String.valueOf(daysBetween(dateFormat.parse(logDate), nowDate)) + " days ago";
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }else {
                 logTime = timeFormat.format(date);
             }
-            if (logItems[1].equals("browse") || logItems[1].equals("comment") || logItems[1].equals("like")) {
+            if (listType.contains(logItems[1])){
+                //System.out.println("Info: Read user log is success,type is "+logItems[1]);
                 JSONObject logItem = new JSONObject();
                 logItem.put("type", logItems[1]);
                 logItem.put("time", logTime);

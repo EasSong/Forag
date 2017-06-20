@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>AdminLTE 2 | Top Navigation</title>
+<title>ForagER | message</title>
 <!-- Tell the browser to be responsive to screen width -->
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 <!-- Bootstrap 3.3.6 -->
@@ -434,14 +434,17 @@
         
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="navbar-collapse pull-left collapse col-md-3" id="navbar-collapse" aria-expanded="false" style="height: 1px;">
-         <form class="navbar-form navbar-right" role="search">
-                	<div class="input-group">
-                        <input class="form-control" type="text" placeholder="Search">
-                            <span class="input-group-btn">
-                              <button type="button" class="btn btn-info btn-flat">Go!</button>
-                            </span>
-                      </div>
-         </form>
+          <div class="input-group">
+              <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
+              </span>
+          </div>
+          <table id="search-tip-list" class="table table-hover" style="width:100%;position: absolute;background-color: white;display: none">
+            <tr><td><a href="#">12312412512515</a></td></tr>
+            <tr><td><a href="#">12312412512515</a></td></tr>
+            <tr><td><a href="#">12312412512515</a></td></tr>
+          </table>
         </div>
         <!-- /.navbar-collapse --> 
         <!-- Navbar Right Menu -->
@@ -682,7 +685,36 @@
     <!-- /.container --> 
   </footer>
 </div>
-<!-- ./wrapper --> 
+<!-- ./wrapper -->
+
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="padding: 3px">
+        <div class="box-header">
+          <h3 class="box-title"><strong><i class="fa fa-cloud" style="font-size: 24px"></i>Search Result</strong></h3>
+
+          <div class="box-tools">
+            <div class="input-group input-group-sm" style="width: 150px;">
+              <input name="table_search" class="form-control pull-right" placeholder="Search" type="text" id="search-input-modal">
+
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default" onclick="submitSearch('search-input-modal')"><i class="fa fa-search"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body table-responsive no-padding">
+        <table id="search-table" class="table table-hover">
+          <tr><td><a href="#">12312412512515</a></td></tr>
+          <tr><td><a href="#">12312412512515</a></td></tr>
+          <tr><td><a href="#">12312412512515</a></td></tr>
+        </table>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <!-- jQuery 2.2.3 --> 
 <script src="../plugins/jQuery/jquery-2.2.3.min.js"></script> 

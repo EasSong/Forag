@@ -62,14 +62,14 @@ public class UserLogin extends HttpServlet {
 			}
 			
 			out.println("<br><span>两秒秒后跳转登录页面<span>");
-			response.setHeader("refresh","2;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
+			response.setHeader("refresh","2;url=" + "/Foarg/forag/login.jsp");
 		}
 		else{
 			HttpSession session = request.getSession(true);
 			session.setAttribute("userShowInfor", userService.getUserDetail(stateCode));
 			session.setAttribute("isLogin",true);
 			out.println("<h2>登录成功</h2><br><h3>正在跳转。。。</h3>");
-			response.setHeader("refresh","1;url=" + "/AdminLTE-2.3.11/forag/userProfile.jsp");
+			response.setHeader("refresh","1;url=" + "/Forag/forag/userProfile.jsp");
 		}
 		
 		out.println("</body></html>");

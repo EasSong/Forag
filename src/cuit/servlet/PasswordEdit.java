@@ -52,7 +52,7 @@ public class PasswordEdit extends HttpServlet {
 		int stateCode = 0;
 		
 		if (userShowInfor == null){
-			response.setHeader("refresh","1;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
+			response.setHeader("refresh","1;url=" + "/Forag/forag/login.jsp");
 		}
 		else{
 			stateCode = userService.editUserPassword(userShowInfor.getUtId(), oldPassword, newPassword);
@@ -71,13 +71,13 @@ public class PasswordEdit extends HttpServlet {
 			}
 			
 			out.println("<br><span>两秒后跳转个人主页<span>");
-			response.setHeader("refresh","2;url=" + "/AdminLTE-2.3.11/forag/userProfile.jsp");
+			response.setHeader("refresh","2;url=" + "/Forag/forag/userProfile.jsp");
 		}
 		else{
 			out.println("<h2>密码修改成功</h2><br><h3>正在跳转。。。</h3>");
 			out.println("<br><span>两秒后跳转登录页面<span>");
 			request.setAttribute("userShowInfor", null);
-			response.setHeader("refresh","2;url=/AdminLTE-2.3.11/forag/login.jsp");
+			response.setHeader("refresh","2;url=/Forag/forag/login.jsp");
 		}
 		
 		out.println("</body></html>");

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>AdminLTE 2 | Top Navigation</title>
+<title>ForagER | index</title>
 <!-- Tell the browser to be responsive to screen width -->
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 <!-- Bootstrap 3.3.6 -->
@@ -40,6 +40,9 @@
     border: 0;
     background-color: #f4f4f4;
     font-size: 16px;
+  }
+  .image_font{
+    font-size: 1.4em;
   }
 </style>
 <!--js -->
@@ -97,7 +100,7 @@
                     LoadMSG("type=hot&ChangeState=noChange&hot=热门&user=推荐");
                 }
                 else if (temp.state == "success"){
-                    location.href="/AdminLTE-2.3.11/forag/index.html";
+                    location.href="/Forag/forag/index.html";
                     topLinkUl.display = "inline";
                     topUserInforUl.display = "none";
                     LoadMSG("type=special&ChangeState=noChange&hot=热门&user=推荐");
@@ -151,7 +154,7 @@
                 + "<div class='tab-pane active' id='new" + i + "'>"
                 + "<div class='box box-widget' style='margin-top:10px;'>"
                 + "<div class='box " + boxColor[i % boxColor.length] + " box-header'>"
-                + "<h5 class='box-title' style='font-size:14px;'><a class='black_link_color' href='article.html?mId=" + data[i].mId + "'>" + data[i].mTitle + "</a></h5>"
+                + "<h5 class='box-title' style='font-size:14px;'><a class='black_link_color' href='article.html?mId=" + data[i].mId + "' target='_blank'>" + data[i].mTitle + "</a></h5>"
                 + "</div>"
                 + "<div class='box-body'>";
             var t = "style='width:100%'";
@@ -317,12 +320,20 @@
             dataType:"json",
             data:"tagName="+tagName+"&offset="+(offset+len)+"&len="+len+"&uId="+uId,
             success:function (data) {
-                alert(data.count);
+                //alert(data.count);
                 var __ret = setMsgTabContent(data.count,data.data);
-                obj.parentNode.innerHTML = "<a href='#' class='btn btn-block btn-default' onclick='submitReadMore(this,\""+data.tagName+"\","+data.offset+","+data.len+")'>" +
-                    "<i class='fa fa-angle-double-down' style='font-size: 18px'></i></a>";
+                if (data.count <= 0){
+                    obj.parentNode.innerHTML = "<a class='btn btn-block btn-default disabled'>No more message</a>";
+                }else {
+                    obj.parentNode.innerHTML = "<a href='#' class='btn btn-block btn-default' onclick='submitReadMore(this,\"" + data.tagName + "\"," + data.offset + "," + data.len + ")'>" +
+                        "<i class='fa fa-angle-double-down' style='font-size: 18px'></i></a>";
+                }
                 parent.innerHTML += __ret.temp;
-                reComposing("tab-content-id");
+                var parent1 = parent.parentNode;
+                //alert(parent.parentNode.innerHTML);
+                var height = reSetColPosition(parent.children);
+                parent1.style.height = (height+20) + "px";
+                parent1.children[1].style.marginTop = (height-10)+"px";
             }
         });
     }
@@ -410,14 +421,17 @@
         
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="navbar-collapse pull-left collapse col-md-3" id="navbar-collapse" aria-expanded="false" style="height: 1px;">
-         <form class="navbar-form navbar-right" role="search">
-           <div class="input-group">
-             <input class="form-control" type="text" placeholder="Search">
+           <div class="input-group" style="margin-top: 10px">
+             <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)">
              <span class="input-group-btn">
-               <button type="button" class="btn btn-info btn-flat">Go!</button>
+               <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
              </span>
            </div>
-         </form>
+           <table id="search-tip-list" class="table table-hover" style="width:100%;position: absolute;background-color: white;display: none">
+             <tr><td><a href="#">12312412512515</a></td></tr>
+             <tr><td><a href="#">12312412512515</a></td></tr>
+             <tr><td><a href="#">12312412512515</a></td></tr>
+           </table>
         </div>
         <!-- /.navbar-collapse --> 
         <!-- Navbar Right Menu -->
@@ -559,7 +573,16 @@
       </ol>
       <div class="carousel-inner" id="carousel-inner-img">
         <div class="item active img-responsive">
-          <a href="#" target="_blank"><img alt="Carousel Bootstrap First" src="images/3d27b00f92855f229477717d9a9b89c2.jpg" style="width: 100%"></a>
+          <a href="#" target="_blank"><img alt="Carousel Bootstrap First" src="images/3c8d89ca1998e316efb308df54d70d71.jpg" style="width: 100%"></a>
+          <div class="carousel-caption">
+            <h4 class="image_font">Second Thumbnail label</h4>
+            <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
+              elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies
+              vehicula ut id elit.</p>
+          </div>
+        </div>
+        <div class="item img-responsive">
+          <a href="#" target="_blank"><img alt="Carousel Bootstrap Second" src="images/b722f83757f0aafddba51e4b1ec74236.jpg" style="width: 100%"></a>
           <div class="carousel-caption">
             <h4>Second Thumbnail label</h4>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
@@ -568,16 +591,7 @@
           </div>
         </div>
         <div class="item img-responsive">
-          <a href="#" target="_blank"><img alt="Carousel Bootstrap Second" src="images/13af9aff4105eaec49aedf7000690b5b.jpg" style="width: 100%"></a>
-          <div class="carousel-caption">
-            <h4>Second Thumbnail label</h4>
-            <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
-              elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies
-              vehicula ut id elit.</p>
-          </div>
-        </div>
-        <div class="item img-responsive">
-          <a href="#" target="_blank"><img alt="Carousel Bootstrap Third" src="images/c2a07e8ad30b7d214254fbb1c9159372.jpg" style="width: 100%"></a>
+          <a href="#" target="_blank"><img alt="Carousel Bootstrap Third" src="images/b2231b8d64fe6d78db947d406031959a.jpg" style="width: 100%"></a>
           <div class="carousel-caption">
             <h4>Third Thumbnail label</h4>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id
@@ -822,7 +836,36 @@
     <!-- /.container --> 
   </footer>
 </div>
-<!-- ./wrapper --> 
+<!-- ./wrapper -->
+
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="padding: 3px">
+        <div class="box-header">
+          <h3 class="box-title"><strong><i class="fa fa-cloud" style="font-size: 24px"></i>Search Result</strong></h3>
+
+          <div class="box-tools">
+            <div class="input-group input-group-sm" style="width: 150px;">
+              <input name="table_search" class="form-control pull-right" placeholder="Search" type="text" id="search-input-modal">
+
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default" onclick="submitSearch('search-input-modal')"><i class="fa fa-search"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body table-responsive no-padding">
+        <table id="search-table" class="table table-hover">
+          <tr><td><a href="#">12312412512515</a></td></tr>
+          <tr><td><a href="#">12312412512515</a></td></tr>
+          <tr><td><a href="#">12312412512515</a></td></tr>
+        </table>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <!-- jQuery 2.2.3 --> 
 <script src="../plugins/jQuery/jquery-2.2.3.min.js"></script> 

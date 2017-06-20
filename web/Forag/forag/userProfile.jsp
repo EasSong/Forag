@@ -10,7 +10,7 @@
 	
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>AdminLTE 2 | Top Navigation</title>
+<title>Forag | Profile</title>
 <!-- Tell the browser to be responsive to screen width -->
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 <!-- Bootstrap 3.3.6 -->
@@ -66,14 +66,14 @@
                 var xmlResult = xmlHttp.responseText;
                 var temp = eval('('+xmlResult+')');
                 if (temp.state == "success"){
-                    location.href="/AdminLTE-2.3.11/forag/index.html";
+                    location.href="/Forag/forag/index.html";
                 }
                 else if(temp.state == "notLogin"){
-                    location.href="/AdminLTE-2.3.11/forag/index.html";
+                    location.href="/Forag/forag/index.html";
                 }else if (temp.state == "isLogin"){
                     setUserDetailInfo(temp.userInfor);
                     getHotTags();
-                    getUserTimeLine();
+                    getUserTimeLine(0,5);
                 }
             }
         }
@@ -195,33 +195,50 @@
             }
         });
     }
-    function getUserTimeLine() {
+    function getUserTimeLine(offset,len) {
         $.ajax({
             type:"POST",
             url:"/UserTimeLine",
             dataType:"json",
+            data:"offset="+offset+"&len="+len,
             success:function (logInfo) {
-                setTimeLine(logInfo);
+                setTimeLine(logInfo,offset);
             }
         });
     }
-    function setTimeLine(logInfo) {
+    function setTimeLine(logInfo,offset) {
         var timeLineTemp = "";
         var timeLineUl = document.getElementById("time-line-ul-id");
-        for (var i = 0; i < logInfo.length; i++){
+        if (offset == 0) {
+            timeLineUl.innerHTML = "";
+        }
+        for (var i = 0; i < logInfo.length; i++) {
             var type = logInfo[i].type;
-            if (type == "date"){
+            if (type == "date") {
                 timeLineTemp += setTimeLineDate(logInfo[i]);
-            } else if (type == "browse"){
+            } else if (type == "browse") {
                 timeLineTemp += setTimeLineBrowse(logInfo[i]);
-            } else if (type == "comment"){
+            } else if (type == "comment") {
                 timeLineTemp += setTimeLineComment(logInfo[i]);
-            } else if (type == "like"){
+            } else if (type == "like") {
                 timeLineTemp += setTimeLineLike(logInfo[i]);
+            } else if (type == "dislike") {
+                timeLineTemp += setTimeLineDislike(logInfo[i]);
+            } else if (type == "collect") {
+                timeLineTemp += setTimeLineCollect(logInfo[i]);
+            } else if (type == "transmit") {
+                timeLineTemp += setTimeLineShare(logInfo[i]);
             }
         }
-        timeLineUl.innerHTML = timeLineTemp;
+        timeLineUl.innerHTML += timeLineTemp;
+//        timeLineUl.parentNode.parentNode.innerHTML += "<div><a href='#' class='btn btn-block btn-default'><i class='fa fa-angle-double-down' style='font-size: 18px'></i></a></div>";
+        var readMoreBtn = document.getElementById("time-line-read-more");
+        if (logInfo.length <= 0) {
+            readMoreBtn.innerHTML = "<a class='btn btn-block btn-default disabled'>No more history</a>";
+        } else {
+            readMoreBtn.innerHTML = "<a href='#' class='btn btn-block btn-default' onclick='getUserTimeLine(" + (offset + 5) + ",5)'><i class='fa fa-angle-double-down' style='font-size: 18px'></i></a>";
 
+        }
     }
     var bgColor = ["bg-red","bg-yellow","bg-aqua","bg-blue","bg-light-blue","bg-green","bg-navy",
         "bg-teal","bg-olive","bg-lime","bg-orange","bg-fuchsia","bg-purple","bg-maroon","bg-black"];
@@ -243,14 +260,14 @@
             +browse.title
         +"</div>"
         +"<div class='timeline-footer'>"
-            +"<a href='article.html?mId="+browse.mId+"' class='btn btn-primary btn-flat btn-xs'>View message</a>"
+            +"<a href='article.html?mId="+browse.mId+"' class='btn bg-blue btn-flat btn-xs'>View message</a>"
         +"</div>"
         +"</div>"
         +"</li>";
     }
     function setTimeLineLike(like) {
         return "<li>"
-        +"<i class='fa fa-thumbs-o-up bg-aqua'></i>"
+        +"<i class='fa fa-thumbs-o-up bg-green'></i>"
         +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
         +"<span class='time'><i class='fa fa-clock-o'></i>"+like.time+"</span>"
         +"<h3 class='timeline-header'><a href='#'>"+((like.objName==null|| like.objName==userName)?'You':like.objName)+"</a> think a message is good</h3>"
@@ -258,7 +275,7 @@
         +like.title
         +"</div>"
         +"<div class='timeline-footer'>"
-        +"<a href='article.html?mId="+like.mId+"' class='btn bg-aqua btn-flat btn-xs'>View message</a>"
+        +"<a href='article.html?mId="+like.mId+"' class='btn bg-green btn-flat btn-xs'>View message</a>"
         +"</div>"
         +"</div>"
         +"</li>";
@@ -273,10 +290,55 @@
         +comment.context
         +"</div>"
         +"<div class='timeline-footer'>"
-        +"<a href='article.html?mId="+comment.mId+"' class='btn btn-warning btn-flat btn-xs'>View message</a>"
+        +"<a href='article.html?mId="+comment.mId+"' class='btn btn-warning btn-flat btn-xs'>View comment</a>"
         +"</div>"
         +"</div>"
         +"</li>";
+    }
+    function setTimeLineDislike(dislike) {
+        return "<li>"
+            +"<i class='fa fa-thumbs-down bg-red'></i>"
+            +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
+            +"<span class='time'><i class='fa fa-clock-o'></i>"+dislike.time+"</span>"
+            +"<h3 class='timeline-header'><a href='#'>"+((dislike.objName==null|| dislike.objName==userName)?'You':dislike.objName)+"</a> maybe not like this message</h3>"
+            +"<div class='timeline-body'>The message's title is: "
+            +dislike.title
+            +"</div>"
+            +"<div class='timeline-footer'>"
+            +"<a href='article.html?mId="+dislike.mId+"' class='btn bg-red btn-flat btn-xs'>View message</a>"
+            +"</div>"
+            +"</div>"
+            +"</li>";
+    }
+    function setTimeLineCollect(collect) {
+        return "<li>"
+            +"<i class='fa fa-folder-open bg-teal' style='padding-top: 2px;padding-left: 3px'></i>"
+            +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
+            +"<span class='time'><i class='fa fa-clock-o'></i>"+collect.time+"</span>"
+            +"<h3 class='timeline-header'><a href='#'>"+((collect.objName==null|| collect.objName==userName)?'You':collect.objName)+"</a> collect a message</h3>"
+            +"<div class='timeline-body'>The message's title is: "
+            +collect.title
+            +"</div>"
+            +"<div class='timeline-footer'>"
+            +"<a href='article.html?mId="+collect.mId+"' class='btn bg-teal btn-flat btn-xs'>View message</a>"
+            +"</div>"
+            +"</div>"
+            +"</li>";
+    }
+    function setTimeLineShare(share) {
+        return "<li>"
+            +"<i class='fa fa-share-alt bg-aqua'></i>"
+            +"<div class='timeline-item' style='background-color: rgb(236, 240, 245)'>"
+            +"<span class='time'><i class='fa fa-clock-o'></i>"+share.time+"</span>"
+            +"<h3 class='timeline-header'><a href='#'>"+((share.objName==null|| share.objName==userName)?'You':share.objName)+"</a> think a message is good</h3>"
+            +"<div class='timeline-body'>The message's title is: "
+            +share.title
+            +"</div>"
+            +"<div class='timeline-footer'>"
+            +"<a href='article.html?mId="+share.mId+"' class='btn bg-aqua btn-flat btn-xs'>View message</a>"
+            +"</div>"
+            +"</div>"
+            +"</li>";
     }
 </script>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
@@ -284,7 +346,7 @@
 <%
 	//防止用户通过URL访问此页面
 	if (session.getAttribute("userShowInfor") == null){
-		out.print("<script language=\"javascript\"type=\"text/javascript\">window.location.href=\"/AdminLTE-2.3.11/forag/login.jsp\";</script>");
+		out.print("<script language=\"javascript\"type=\"text/javascript\">window.location.href=\"/Forag/forag/login.jsp\";</script>");
 		session.setAttribute("isLogin", false);
 	}
 	else{
@@ -304,14 +366,17 @@
         
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="navbar-collapse pull-left collapse col-md-3" id="navbar-collapse" aria-expanded="false" style="height: 1px;">
-         <form class="navbar-form navbar-right" role="search">
-                	<div class="input-group">
-                        <input class="form-control" type="text" placeholder="Search">
-                            <span class="input-group-btn">
-                              <button type="button" class="btn btn-info btn-flat">Go!</button>
-                            </span>
-                      </div>
-         </form>
+          <div class="input-group">
+            <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)">
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
+              </span>
+          </div>
+          <table id="search-tip-list" class="table table-hover" style="width:100%;position: absolute;background-color: white;display: none">
+            <tr><td><a href="#">12312412512515</a></td></tr>
+            <tr><td><a href="#">12312412512515</a></td></tr>
+            <tr><td><a href="#">12312412512515</a></td></tr>
+          </table>
         </div>
         <!-- /.navbar-collapse --> 
         <!-- Navbar Right Menu -->
@@ -645,6 +710,7 @@
                 </div>
                 <!-- /.row -->
               </section>
+              <div id="time-line-read-more"><a href="#" class="btn btn-block btn-default" onclick="getUserTimeLine(0,5)"><i class='fa fa-angle-double-down' style='font-size: 18px'></i></a></div>
             </div>
             <div class="tab-pane" id="interest">
               <div class="container-fluid">
@@ -813,7 +879,36 @@
     <!-- /.container --> 
   </footer>
 </div>
-<!-- ./wrapper --> 
+<!-- ./wrapper -->
+
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content no-padding">
+      <div class="modal-header" style="padding: 3px">
+        <div class="box-header">
+          <h3 class="box-title"><strong><i class="fa fa-cloud" style="font-size: 24px"></i>Search Result</strong></h3>
+
+          <div class="box-tools">
+            <div class="input-group input-group-sm" style="width: 150px;">
+              <input name="table_search" class="form-control pull-right" placeholder="Search" type="text" id="search-input-modal">
+
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default" onclick="submitSearch('search-input-modal')"><i class="fa fa-search"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body table-responsive no-padding">
+        <table id="search-table" class="table table-hover">
+          <tr><td><a href="#">12312412512515</a></td></tr>
+          <tr><td><a href="#">12312412512515</a></td></tr>
+          <tr><td><a href="#">12312412512515</a></td></tr>
+        </table>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <!-- jQuery 2.2.3 --> 
 <script src="../plugins/jQuery/jquery-2.2.3.min.js"></script> 

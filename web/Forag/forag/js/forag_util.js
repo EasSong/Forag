@@ -53,6 +53,7 @@ function reComposing(tabContentId) {
     }
 }
 function reSetColPosition(colList) {
+    //alert(colList.length);
     var windowWidth = document.documentElement.clientWidth;
     var posHeightArr = new Array(parseInt(windowWidth/500+1));
     initArr(posHeightArr);
@@ -111,4 +112,61 @@ function contains(needle,arr) {
         if (arr[i] == needle) return true;
     }
     return false;
+}
+//top 导航栏搜索功能
+function submitSearch(inputId) {
+    var inputSearch = document.getElementById(inputId);
+    getHotTag(inputId.value);
+}
+function getHotTag(value) {
+    $.ajax({
+        type:"POST",
+        url:"/LoadMoreMsg",
+        dataType:"json",
+        data:"tagName="+value+"&offset=0&len=10&uId=-1",
+        success:function (msgData) {
+            var tableSearch = document.getElementById("search-table");
+            if (msgData.count<=0){
+                tableSearch.innerHTML = "<tr><td style='text-align: center'>没有搜索到标签\""+inputSearch.value+"\"下的文章</td></tr>"
+            }else {
+                var msg = msgData.data;
+                var tempHtml = "";
+                for (var i = 0; i < msgData.count; i++){
+                    tempHtml += "<tr><td style='padding-left: 20px'><a href='article.html?mId=" + msg[i].mId + "' target='_blank'>"+msg[i].mTitle+"</a></td></tr>";
+                }
+                tableSearch.innerHTML = tempHtml;
+            }
+            $('#searchModal').modal('show');
+        }
+    });
+}
+//top 导航栏搜索提示下拉
+function setSearchTipList(obj) {
+    var searchValue = obj.value;
+    var searchTipListTable = document.getElementById("search-tip-list");
+    if (searchValue == ""){
+        searchTipListTable.style.display = "none";
+    } else {
+        $.ajax({
+            type:"POST",
+            url:"/TagEdit",
+            dataType:"json",
+            data:"type=search&tagName="+obj.value,
+            success:function (resultData) {
+                var length = resultData.length;
+                var tipList = document.getElementById("search-tip-list");
+                var temp = "";
+                if (length>0){
+                    for (var i = 0; i < length; i++){
+                        temp += "<tr><td><a href='#' onclick='getHotTag("+resultData[i]+")'>"+resultData[i]+"</a></td></tr>";
+                    }
+                    searchTipListTable.style.display = "block";
+                    tipList.innerHTML = temp;
+                }else {
+                    //temp = "<tr><td><a href='#' class='disabled'>"+resultData[i]+"</a></td></tr>";
+                    searchTipListTable.style.display = "none";
+                }
+            }
+        });
+    }
 }

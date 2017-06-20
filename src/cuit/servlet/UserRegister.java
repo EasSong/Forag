@@ -64,11 +64,11 @@ public class UserRegister extends HttpServlet {
 			}
 
 			out.println("<br><span>两秒秒后跳转注册页面<span>");
-			response.setHeader("refresh","2;url=" + "/AdminLTE-2.3.11/forag/register.jsp");
+			response.setHeader("refresh","2;url=" + "/Forag/forag/register.jsp");
 		}
 		else{
 			out.println("<h2>注册成功</h2><br><h3>正在跳转登录页面。。。</h3>");
-			response.setHeader("refresh","1;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
+			response.setHeader("refresh","1;url=" + "/Forag/forag/login.jsp");
 		}
 
 		out.println("</body></html>");
