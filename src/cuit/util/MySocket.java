@@ -68,13 +68,13 @@ public class MySocket {
         }
     }
 
-    public static JSONArray getUserInterestMsg(UserBean userBean, int len, int history){
-        JSONObject logJson = new UserLogImpl().readUserLogForSocket(String.valueOf(userBean.getUtId()),0,len,history);
+    public static JSONObject getUserInterestMsg(UserBean userBean, int len, int offset,JSONArray history){
+        JSONObject logJson = new UserLogImpl().readUserLogForSocket(String.valueOf(userBean.getUtId()),0,50,100);
         String jsonStr = userBean.toJSONString();
-        String param = "{\"name\":\"getUserInterestPage\",\"params\":{\"user\":"+JSONObject.fromObject(jsonStr)+",\"log\":"+logJson.toString()+",\"len\":\""+len+"\"}}";
+        String param = "{\"name\":\"getUserInterestPage\",\"params\":{\"user\":"+JSONObject.fromObject(jsonStr)+",\"log\":"+logJson.toString()+",\"len\":\""+len+"\",\"history\":"+(history == null?"[]":history.toString())+"}}";
         JSONObject jsonObject = runSocket(param);
         if (jsonObject.getString("state").equals("success")){
-            return jsonObject.getJSONArray("result");
+            return jsonObject.getJSONObject("result");
         }else {
             return null;
         }

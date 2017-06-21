@@ -71,6 +71,12 @@
                 else if(temp.state == "notLogin"){
                     location.href="/Forag/forag/index.html";
                 }else if (temp.state == "isLogin"){
+                    var topLinkUl = document.getElementById("top-login-register-link");
+                    var topUserInforUl = document.getElementById("top-user-information");
+                    topLinkUl.style.display = "none";
+                    topUserInforUl.style.display = "inline";
+                    document.getElementById("profile-user-name").innerHTML = temp.userInfor.uName;
+                    document.getElementById("profile-user-name-hidden").innerHTML = temp.userInfor.uName;
                     setUserDetailInfo(temp.userInfor);
                     getHotTags();
                     getUserTimeLine(0,5);
@@ -342,7 +348,7 @@
     }
 </script>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
-<body class="hold-transition skin-black-light layout-top-nav" onload="checkLogin()">
+<body class="hold-transition skin-black-light layout-top-nav" onload="checkLogin()"  onclick="setTipListShow()">
 <%
 	//防止用户通过URL访问此页面
 	if (session.getAttribute("userShowInfor") == null){
@@ -357,139 +363,159 @@
 <div class="wrapper">
   <header class="main-header">
     <nav class="navbar navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header col-md-4"> <a href="index.html" class="navbar-brand" style="border:none;">Forag<b>ER</b></a>
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
-            <i class="fa fa-bars"></i>
-          </button>
+      <a href="index.html" class="logo hidden-xs" style="border:none;color: #000000;margin-left: 10%;width: 100px">
+        <!-- mini logo for sidebar mini 50x50 pixels -->
+        <span class="logo-mini"><b>E</b>va</span>
+        <!-- logo for regular state and mobile devices -->
+        <span class="logo-lg">Forag<b>ER</b></span>
+      </a>
+      <div class="with-border">
+        <a href="#" class="sidebar-toggle visible-xs" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+        </a>
+      </div>
+      <!-- /.navbar-collapse -->
+      <!-- Navbar Right Menu -->
+      <div class="navbar-custom-menu col-md-5 navbar-collapse collapse pull-right" id="navbar-collapse" style="margin-right: 10%">
+        <ul class="nav navbar-nav" id="top-login-register-link" style="float:right;">
+          <!-- Messages: style can be found in dropdown.less-->
+
+          <!-- Notifications Menu -->
+          <li class="dropdown messages-menu">
+            <a href="login.jsp" class="text-center" style="color: #3c8dbc">请登录</a>
+          </li>
+          <!-- Tasks Menu -->
+          <li class="dropdown messages-menu">
+            <a href="register.jsp" class="text-center" style="color: #3c8dbc">注册账号</a>
+          </li>
+          <li class="dropdown messages-menu">
+            <a><br/></a>
+          </li>
+        </ul>
+        <ul class="nav navbar-nav" id="top-user-information" style="float:right; display: none">
+          <!-- Messages: style can be found in dropdown.less-->
+
+          <!-- Notifications Menu -->
+          <li class="dropdown messages-menu">
+            <!-- Menu toggle button -->
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-bell-o"></i> <span class="label label-warning">10</span> </a>
+            <ul class="dropdown-menu">
+              <li class="header">You have 10 requests</li>
+              <li>
+                <!-- Inner Menu: contains the notifications -->
+                <ul class="menu">
+                  <li>
+                    <ul class="menu">
+                      <li><!-- start message -->
+                        <a href="#">
+                          <div class="pull-left">
+                            <!-- User Image -->
+                            <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> </div>
+                          <!-- Message title and timestamp -->
+                          <h4> Alexander Pierce <small><i class="fa fa-clock-o"></i> 5 mins</small> </h4>
+                          <!-- The message -->
+                          <p>Why not buy a new awesome theme?</p>
+                        </a> </li>
+                      <!-- end message -->
+                    </ul>
+                  </li>
+                  <!-- end notification -->
+                </ul>
+              </li>
+              <li class="footer"><a href="userProfile.jsp">See all</a></li>
+            </ul>
+          </li>
+          <!-- Tasks Menu -->
+          <li class="dropdown messages-menu">
+            <!-- Menu Toggle Button -->
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="glyphicon glyphicon-time"></i> <span class="label label-danger">9</span> </a>
+            <ul class="dropdown-menu">
+              <li class="header">You have 4 history</li>
+              <li>
+                <!-- inner menu: contains the messages -->
+                <ul class="menu">
+                  <li><!-- start message -->
+                    <a href="#">
+                      <div class="pull-left">
+                        <!-- User Image -->
+                        <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> </div>
+                      <!-- Message title and timestamp -->
+                      <h4> Alexander Pierce <small><i class="fa fa-clock-o"></i> 5 mins</small> </h4>
+                      <!-- The message -->
+                      <p>Why not buy a new awesome theme?</p>
+                    </a> </li>
+                  <!-- end message -->
+                </ul>
+                <!-- /.menu -->
+              </li>
+              <li class="footer"><a href="userProfile.jsp">See All</a></li>
+            </ul>
+          </li>
+          <!-- User Account Menu -->
+          <li class="dropdown user user-menu">
+            <!-- Menu Toggle Button -->
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              <!-- The user image in the navbar-->
+              <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
+              <!-- hidden-xs hides the username on small devices so only the image appears. -->
+              <span class="hidden-xs" id="profile-user-name">UserName</span> </a>
+            <ul class="dropdown-menu">
+              <!-- The user image in the menu -->
+              <li class="user-header"> <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+                <p> <span id="profile-user-name-hidden">UserName</span>-<span id="profile-user-profession">Web Developer</span> <small>Member since Nov. 2012</small> </p>
+              </li>
+              <!-- Menu Body -->
+              <li class="user-body">
+                <div class="row">
+                  <div class="col-xs-4 text-center">
+                    <div class="description-block">
+                      <h5 class="description-header">3,200</h5>
+                      <span class="description-text"><a href="#">Fllowers</a></span>
+                    </div>
+                  </div>
+                  <div class="col-xs-4 text-center">
+                    <div class="description-block">
+                      <h5 class="description-header">3,200</h5>
+                      <span class="description-text"><a href="#">Interest</a></span>
+                    </div>
+                  </div>
+                  <div class="col-xs-4 text-center">
+                    <div class="description-block">
+                      <h5 class="description-header">3,200</h5>
+                      <span class="description-text"><a href="#">Friends</a></span>
+                    </div>
+                  </div>
+
+                </div>
+                <!-- /.row -->
+              </li>
+              <!-- Menu Footer-->
+              <li class="user-footer">
+                <div class="pull-left"> <a href="userProfile.jsp" class="btn btn-default btn-flat">Profile</a> </div>
+                <div class="pull-right"> <a href="login.jsp" onclick="loginOut()" class="btn btn-default btn-flat">Sign out</a> </div>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!-- /.navbar-custom-menu -->
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="no-padding pull-right col-md-2" aria-expanded="false" style="height: 1px;margin-right:20px">
+        <div class="input-group" style="margin-top: 10px">
+          <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)" onfocus="setSearchTipList(this)">
+          <span class="input-group-btn">
+               <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
+             </span>
         </div>
-        
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="navbar-collapse pull-left collapse col-md-3" id="navbar-collapse" aria-expanded="false" style="height: 1px;">
-          <div class="input-group">
-            <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)">
-            <span class="input-group-btn">
-                <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
-              </span>
-          </div>
-          <table id="search-tip-list" class="table table-hover" style="width:100%;position: absolute;background-color: white;display: none">
+        <div style="width: 100%" >
+          <table id="search-tip-list" class="table table-hover" style="position: absolute;background-color: white;display: none" >
             <tr><td><a href="#">12312412512515</a></td></tr>
             <tr><td><a href="#">12312412512515</a></td></tr>
             <tr><td><a href="#">12312412512515</a></td></tr>
           </table>
         </div>
-        <!-- /.navbar-collapse --> 
-        <!-- Navbar Right Menu -->
-        <div class="navbar-custom-menu col-md-5">
-          <ul class="nav navbar-nav" style="float:right;">
-            <!-- Messages: style can be found in dropdown.less-->
-            
-            <!-- Notifications Menu -->
-            <li class="dropdown messages-menu"> 
-              <!-- Menu toggle button --> 
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-bell-o"></i> <span class="label label-warning">10</span> </a>
-              <ul class="dropdown-menu">
-                <li class="header">You have 10 requests</li>
-                <li> 
-                  <!-- Inner Menu: contains the notifications -->
-                  <ul class="menu">
-                    <li>
-                    	<ul class="menu">
-                    <li><!-- start message --> 
-                      <a href="#">
-                      <div class="pull-left"> 
-                        <!-- User Image --> 
-                        <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> </div>
-                      <!-- Message title and timestamp -->
-                      <h4> Alexander Pierce <small><i class="fa fa-clock-o"></i> 5 mins</small> </h4>
-                      <!-- The message -->
-                      <p>Why not buy a new awesome theme?</p>
-                      </a> </li>
-                    <!-- end message -->
-                  </ul>
-                    </li>
-                    <!-- end notification -->
-                  </ul>
-                </li>
-                <li class="footer"><a href="userProfile.jsp">See all</a></li>
-              </ul>
-            </li>
-            <!-- Tasks Menu -->
-            <li class="dropdown messages-menu"> 
-              <!-- Menu Toggle Button --> 
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="glyphicon glyphicon-time"></i> <span class="label label-danger">9</span> </a>
-              <ul class="dropdown-menu">
-                <li class="header">You have 4 history</li>
-                <li> 
-                  <!-- inner menu: contains the messages -->
-                  <ul class="menu">
-                    <li><!-- start message --> 
-                      <a href="#">
-                      <div class="pull-left"> 
-                        <!-- User Image --> 
-                        <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image"> </div>
-                      <!-- Message title and timestamp -->
-                      <h4> Alexander Pierce <small><i class="fa fa-clock-o"></i> 5 mins</small> </h4>
-                      <!-- The message -->
-                      <p>Why not buy a new awesome theme?</p>
-                      </a> </li>
-                    <!-- end message -->
-                  </ul>
-                  <!-- /.menu --> 
-                </li>
-                <li class="footer"><a href="userProfile.jsp">See All</a></li>
-              </ul>
-            </li>
-            <!-- User Account Menu -->
-            <li class="dropdown user user-menu"> 
-              <!-- Menu Toggle Button --> 
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"> 
-              <!-- The user image in the navbar--> 
-              <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image"> 
-              <!-- hidden-xs hides the username on small devices so only the image appears. --> 
-              <span class="hidden-xs"><%=userShowInfor.getUtName()%></span> </a>
-              <ul class="dropdown-menu">
-                <!-- The user image in the menu -->
-                <li class="user-header"> <img src="../dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-                  <p> <%=userShowInfor.getUtName()%> - Web Developer <small>Member since Nov. 2012</small> </p>
-                </li>
-                <!-- Menu Body -->
-                <li class="user-body">
-                  <div class="row">
-                    <div class="col-xs-4 text-center">
-                    	<div class="description-block">
-                            <h5 class="description-header">3,200</h5>
-                            <span class="description-text"><a href="#">Fllowers</a></span>
-                         </div>
-                    </div>
-                    <div class="col-xs-4 text-center">
-                    	<div class="description-block">
-                            <h5 class="description-header">3,200</h5>
-                            <span class="description-text"><a href="#">Interest</a></span>
-                         </div>
-                    </div>
-                    <div class="col-xs-4 text-center">
-                    	<div class="description-block">
-                            <h5 class="description-header">3,200</h5>
-                            <span class="description-text"><a href="#">Friends</a></span>
-                         </div>
-                    </div>
-                    
-                  </div>
-                  <!-- /.row --> 
-                </li>
-                <!-- Menu Footer-->
-                <li class="user-footer">
-                  <div class="pull-left"> <a href="userProfile.jsp" class="btn btn-default btn-flat">Profile</a> </div>
-                  <div class="pull-right"> <a href="login.jsp" onclick="loginOut()" class="btn btn-default btn-flat">Sign out</a> </div>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-        <!-- /.navbar-custom-menu --> 
       </div>
-      <!-- /.container-fluid --> 
+      <!-- /.container-fluid -->
     </nav>
   </header>
   <div class="container-fluid" style="background-color:#FCC;">

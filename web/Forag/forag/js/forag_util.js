@@ -116,9 +116,11 @@ function contains(needle,arr) {
 //top 导航栏搜索功能
 function submitSearch(inputId) {
     var inputSearch = document.getElementById(inputId);
-    getHotTag(inputId.value);
+    //alert(inputId.value);
+    getHotTag(inputSearch.value);
 }
 function getHotTag(value) {
+    document.getElementById("search-tip-list").style.display = "none";
     $.ajax({
         type:"POST",
         url:"/LoadMoreMsg",
@@ -127,12 +129,15 @@ function getHotTag(value) {
         success:function (msgData) {
             var tableSearch = document.getElementById("search-table");
             if (msgData.count<=0){
-                tableSearch.innerHTML = "<tr><td style='text-align: center'>没有搜索到标签\""+inputSearch.value+"\"下的文章</td></tr>"
+                tableSearch.innerHTML = "<tr style='width: 100%'><td style='text-align: center;width: 100%'>没有搜索到标签\""+inputSearch.value+"\"下的文章</td></tr>"
             }else {
                 var msg = msgData.data;
                 var tempHtml = "";
                 for (var i = 0; i < msgData.count; i++){
-                    tempHtml += "<tr><td style='padding-left: 20px'><a href='article.html?mId=" + msg[i].mId + "' target='_blank'>"+msg[i].mTitle+"</a></td></tr>";
+                    if (i > 7){
+                        break;
+                    }
+                    tempHtml += "<tr style='width: 100%'><td style='padding-left: 20px;width: 100%'><a href='article.html?mId=" + msg[i].mId + "' target='_blank'>"+msg[i].mTitle+"</a></td></tr>";
                 }
                 tableSearch.innerHTML = tempHtml;
             }
@@ -142,6 +147,7 @@ function getHotTag(value) {
 }
 //top 导航栏搜索提示下拉
 function setSearchTipList(obj) {
+    //alert(obj.value);
     var searchValue = obj.value;
     var searchTipListTable = document.getElementById("search-tip-list");
     if (searchValue == ""){
@@ -151,16 +157,19 @@ function setSearchTipList(obj) {
             type:"POST",
             url:"/TagEdit",
             dataType:"json",
-            data:"type=search&tagName="+obj.value,
+            data:"type=search&tagName="+(obj.value).trim(),
             success:function (resultData) {
                 var length = resultData.length;
                 var tipList = document.getElementById("search-tip-list");
                 var temp = "";
                 if (length>0){
                     for (var i = 0; i < length; i++){
-                        temp += "<tr><td><a href='#' onclick='getHotTag("+resultData[i]+")'>"+resultData[i]+"</a></td></tr>";
+                        if (i > 7){
+                            break;
+                        }
+                        temp += "<tr style='width: 100%;'><td style='width: 100%;' class='btn'  onclick='getHotTag(\""+resultData[i]+"\")'><span class='pull-left'>"+resultData[i]+"</span></td></tr>";
                     }
-                    searchTipListTable.style.display = "block";
+                    searchTipListTable.style.display = "table";
                     tipList.innerHTML = temp;
                 }else {
                     //temp = "<tr><td><a href='#' class='disabled'>"+resultData[i]+"</a></td></tr>";
@@ -168,5 +177,14 @@ function setSearchTipList(obj) {
                 }
             }
         });
+    }
+}
+function setTipListShow() {
+    //alert(1);
+    //document.getElementById("top-input-search").focus();
+    var focusedTagId = document.activeElement.id;
+   // alert(document.activeElement.tagName);
+    if (focusedTagId != "top-input-search"){
+        document.getElementById("search-tip-list").style.display = "none";
     }
 }

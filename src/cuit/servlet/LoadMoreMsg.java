@@ -35,7 +35,17 @@ public class LoadMoreMsg extends HttpServlet {
             msgArr = MySocket.getHotMsgIntro(uId,Integer.parseInt(len),Integer.parseInt(offset));
         }else if(tagName.equals("ÍÆ¼ö")) {
             if (!uId.equals("-1")) {
-                msgArr = MySocket.getUserInterestMsg((UserBean) request.getSession().getAttribute("userShowInfor"),Integer.parseInt(len),Integer.parseInt(offset));
+                JSONArray userHistory = (JSONArray)request.getSession().getAttribute("userHistory");
+                JSONObject jsonObject = MySocket.getUserInterestMsg((UserBean)request.getSession().getAttribute("userShowInfor"),15,Integer.parseInt(offset),userHistory);
+                msgArr = jsonObject.getJSONArray("msg");
+                if (userHistory == null){
+                    userHistory = jsonObject.getJSONArray("id");
+                    //userHistory.addAll();
+                }else {
+                    userHistory.addAll(jsonObject.getJSONArray("id"));
+                }
+                System.out.println("Info: User history"+userHistory.toString());
+                request.getSession().setAttribute("userHistory",userHistory);
             }
         }else{
             msgArr = MySocket.getMsgIntroByTag(tagName,uId,Integer.parseInt(len),Integer.parseInt(offset));

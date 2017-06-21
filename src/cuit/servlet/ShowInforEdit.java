@@ -56,7 +56,7 @@ public class ShowInforEdit extends HttpServlet {
 			out.println("<html><body>");
 			UserBean userShowInfor = (UserBean)session.getAttribute("userShowInfor");
 			if (userShowInfor == null) {
-				response.setHeader("refresh", "1;url=" + "/AdminLTE-2.3.11/forag/login.jsp");
+				response.setHeader("refresh", "1;url=" + "/Forag/forag/login.jsp");
 			} else {
 				userShowInfor.setUtName(request.getParameter("name"));
 				userShowInfor.setUtAddr(request.getParameter("location"));
@@ -77,7 +77,7 @@ public class ShowInforEdit extends HttpServlet {
 			}
 			out.println("<br><span>两秒后跳转个人主页<span>");
 			//reloadUrl = "/AdminLTE-2.3.11/forag/userProfile.jsp";
-			response.setHeader("refresh","2;url=" + "/AdminLTE-2.3.11/forag/userProfile.jsp");
+			response.setHeader("refresh","2;url=" + "/Forag/forag/userProfile.jsp");
 			out.println("</body></html>");
 		}
 		else if (type.equals("loginOut")){
@@ -116,9 +116,9 @@ public class ShowInforEdit extends HttpServlet {
 			}
 		}
 		else if (type.equals("hotTag")){
-			MessageService messageService = AppUtil.getMessageService();
-			Date date = new Date(System.currentTimeMillis());
-			String nowDateStr = date.toString();
+			//MessageService messageService = AppUtil.getMessageService();
+			//Date date = new Date(System.currentTimeMillis());
+			//String nowDateStr = date.toString();
 			//获取当前热门的标签的id
 			JSONArray jsonArray = MySocket.getHotTags(0,10).getJSONArray("tags");
 			out.print(jsonArray);

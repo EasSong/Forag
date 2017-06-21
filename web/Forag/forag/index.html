@@ -408,34 +408,24 @@
     }
 </script>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
-<body class="hold-transition skin-black-light layout-top-nav" onload="checkLogin()">
+<body class="hold-transition skin-black-light layout-top-nav" onload="checkLogin()" onclick="setTipListShow()">
 <div class="wrapper">
   <header class="main-header">
     <nav class="navbar navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header col-md-4"> <a href="index.html" class="navbar-brand" style="border:none;">Forag<b>ER</b></a>
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
-            <i class="fa fa-bars"></i>
-          </button>
-        </div>
-        
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="navbar-collapse pull-left collapse col-md-3" id="navbar-collapse" aria-expanded="false" style="height: 1px;">
-           <div class="input-group" style="margin-top: 10px">
-             <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)">
-             <span class="input-group-btn">
-               <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
-             </span>
-           </div>
-           <table id="search-tip-list" class="table table-hover" style="width:100%;position: absolute;background-color: white;display: none">
-             <tr><td><a href="#">12312412512515</a></td></tr>
-             <tr><td><a href="#">12312412512515</a></td></tr>
-             <tr><td><a href="#">12312412512515</a></td></tr>
-           </table>
-        </div>
+          <a href="index.html" class="logo hidden-xs" style="border:none;color: #000000;margin-left: 10%;width: 100px">
+            <!-- mini logo for sidebar mini 50x50 pixels -->
+            <span class="logo-mini"><b>E</b>va</span>
+            <!-- logo for regular state and mobile devices -->
+            <span class="logo-lg">Forag<b>ER</b></span>
+          </a>
+          <div class="with-border">
+            <a href="#" class="sidebar-toggle visible-xs" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false" >
+              <span class="sr-only">Toggle navigation</span>
+            </a>
+          </div>
         <!-- /.navbar-collapse --> 
         <!-- Navbar Right Menu -->
-        <div class="navbar-custom-menu col-md-5">
+        <div class="navbar-custom-menu col-md-5 navbar-collapse collapse pull-right" id="navbar-collapse" style="margin-right: 10%">
           <ul class="nav navbar-nav" id="top-login-register-link" style="float:right;">
             <!-- Messages: style can be found in dropdown.less-->
 
@@ -557,7 +547,22 @@
             </li>
           </ul>
         </div>
-        <!-- /.navbar-custom-menu --> 
+        <!-- /.navbar-custom-menu -->
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="no-padding pull-right col-md-2" id="search-input-div" aria-expanded="false" style="height: 1px;margin-right:20px">
+        <div class="input-group" style="margin-top: 10px">
+          <input class="form-control" type="text" placeholder="Search" id="top-input-search" oninput="setSearchTipList(this)" onfocus="setSearchTipList(this)">
+          <span class="input-group-btn">
+               <button type="button" class="btn btn-info btn-flat" onclick="submitSearch('top-input-search')"><i class="fa fa-search"></i></button>
+             </span>
+        </div>
+        <div style="width: 100%" >
+          <table id="search-tip-list" class="table table-hover" style="position: absolute;background-color: white;display: none" >
+            <tr><td><a href="#">12312412512515</a></td></tr>
+            <tr><td><a href="#">12312412512515</a></td></tr>
+            <tr><td><a href="#">12312412512515</a></td></tr>
+          </table>
+        </div>
       </div>
       <!-- /.container-fluid --> 
     </nav>
@@ -614,7 +619,7 @@
           <li class=""><a href="#topic5" data-toggle="tab" aria-expanded="false">Topic5</a></li>
           <li class=""><a href="#topic6" data-toggle="tab" aria-expanded="false">Topic6</a></li>
           <li class="dropdown pull-right" id="dropdown-tags-selector">
-            <a href="#" class="dropdown-toggle"  data-toggle="modal" data-target="#myModal">All Topic<span class="caret"></span></a>
+            <a href="#" class="dropdown-toggle"  data-toggle="modal" data-target="#myModal">More Tags<span class="caret"></span></a>
           	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" backdrop="static">
             <div class="modal-dialog">
                 <div class="modal-content">

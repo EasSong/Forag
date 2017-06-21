@@ -77,11 +77,21 @@ public class LoadMSG extends HttpServlet {
                     JSONArray msgArr = new JSONArray();
                     String ip = request.getRemoteAddr();
                     if (tag.equals(hot)) {
-                        msgArr = MySocket.getHotMsgIntro(ip, 8, 0);
+                        msgArr = MySocket.getHotMsgIntro(ip, 10, 0);
                     } else if (tag.equals(recommend)) {
-                        msgArr = MySocket.getUserInterestMsg((UserBean)request.getSession().getAttribute("userShowInfor"),50,100);
+                        JSONArray userHistory = (JSONArray)request.getSession().getAttribute("userHistory");
+                        JSONObject jsonObject = MySocket.getUserInterestMsg((UserBean)request.getSession().getAttribute("userShowInfor"),30,0,new JSONArray());
+                        msgArr = jsonObject.getJSONArray("msg");
+                        if (userHistory == null){
+                            userHistory = jsonObject.getJSONArray("id");
+                            //userHistory.addAll();
+                        }else {
+                            userHistory.addAll(jsonObject.getJSONArray("id"));
+                        }
+                        System.out.println("Info: User history"+userHistory.toString());
+                        request.getSession().setAttribute("userHistory",userHistory);
                     } else {
-                        msgArr = MySocket.getMsgIntroByTag(tag, ip, 8, 0);
+                        msgArr = MySocket.getMsgIntroByTag(tag, ip, 10, 0);
                     }
                     if (msgArr == null) {
                         jsonArrTag.add(-1);
